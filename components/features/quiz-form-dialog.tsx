@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createQuiz, updateQuiz } from '@/services/quiz-service';
+import { triggerStorageRefresh } from '@/hooks/use-mock-data';
 import { SearchAndSelect } from '@/components/features/search-and-select';
 import { Button } from '@/components/ui/button';
 import {
@@ -113,6 +114,7 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
     setIsSubmitting(false);
 
     if (result.success) {
+      triggerStorageRefresh();
       onSuccess();
     }
   };

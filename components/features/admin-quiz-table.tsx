@@ -6,6 +6,7 @@ import { hu } from 'date-fns/locale';
 import { Pencil, Trash2, Plus, MoreVertical, Calendar, Clock } from 'lucide-react';
 import { useQuizzes } from '@/hooks/use-quizzes';
 import { deleteQuiz } from '@/services/quiz-service';
+import { triggerStorageRefresh } from '@/hooks/use-mock-data';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -52,6 +53,7 @@ export function AdminQuizTable() {
     setIsDeleting(false);
     
     if (result.success) {
+      triggerStorageRefresh();
       setDeletingQuiz(null);
       refetch();
     }

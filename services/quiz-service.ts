@@ -12,9 +12,23 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { firestore, isFirebaseConfigured } from '@/lib/firebase';
+import {
+  isMockMode,
+  getLocalQuizzes,
+  getLocalUpcomingQuizzes,
+  getLocalQuiz,
+  createLocalQuiz,
+  updateLocalQuiz,
+  deleteLocalQuiz,
+} from './mock-storage';
 import type { Quiz, QuizFormData, ApiResponse } from '@/types';
 
 const COLLECTION_NAME = 'quizzes';
+
+// Check if we should use local storage
+function shouldUseMockStorage(): boolean {
+  return isMockMode() || !isFirebaseConfigured();
+}
 
 // Helper to convert Firestore document to Quiz
 function documentToQuiz(doc: { id: string; data: () => Record<string, unknown> }): Quiz {
@@ -37,8 +51,8 @@ function documentToQuiz(doc: { id: string; data: () => Record<string, unknown> }
 
 // Get all quizzes
 export async function getQuizzes(): Promise<ApiResponse<Quiz[]>> {
-  if (!isFirebaseConfigured()) {
-    return { success: true, data: getMockQuizzes() };
+  if (shouldUseMockStorage()) {
+    return { success: true, data: getLocalQuizzes() };
   }
 
   try {
@@ -51,14 +65,14 @@ export async function getQuizzes(): Promise<ApiResponse<Quiz[]>> {
     return { success: true, data: quizzes };
   } catch (error) {
     console.error('Error fetching quizzes:', error);
-    return { success: false, error: 'Failed to fetch quizzes' };
+    return { success: false, error: 'Hiba a kvízek betöltésekor' };
   }
 }
 
 // Get upcoming quizzes (active and future date)
 export async function getUpcomingQuizzes(): Promise<ApiResponse<Quiz[]>> {
-  if (!isFirebaseConfigured()) {
-    return { success: true, data: getMockQuizzes().filter(q => q.isActive) };
+  if (shouldUseMockStorage()) {
+    return { success: true, data: getLocalUpcomingQuizzes() };
   }
 
   try {
@@ -74,16 +88,16 @@ export async function getUpcomingQuizzes(): Promise<ApiResponse<Quiz[]>> {
     return { success: true, data: quizzes };
   } catch (error) {
     console.error('Error fetching upcoming quizzes:', error);
-    return { success: false, error: 'Failed to fetch upcoming quizzes' };
+    return { success: false, error: 'Hiba a közelgő kvízek betöltésekor' };
   }
 }
 
 // Get single quiz by ID
 export async function getQuiz(id: string): Promise<ApiResponse<Quiz>> {
-  if (!isFirebaseConfigured()) {
-    const quiz = getMockQuizzes().find(q => q.id === id);
+  if (shouldUseMockStorage()) {
+    const quiz = getLocalQuiz(id);
     if (quiz) return { success: true, data: quiz };
-    return { success: false, error: 'Quiz not found' };
+    return { success: false, error: 'Kvíz nem található' };
   }
 
   try {
@@ -91,20 +105,20 @@ export async function getQuiz(id: string): Promise<ApiResponse<Quiz>> {
     const docSnap = await getDoc(docRef);
     
     if (!docSnap.exists()) {
-      return { success: false, error: 'Quiz not found' };
+      return { success: false, error: 'Kvíz nem található' };
     }
     
     return { success: true, data: documentToQuiz({ id: docSnap.id, data: () => docSnap.data() }) };
   } catch (error) {
     console.error('Error fetching quiz:', error);
-    return { success: false, error: 'Failed to fetch quiz' };
+    return { success: false, error: 'Hiba a kvíz betöltésekor' };
   }
 }
 
 // Create new quiz
 export async function createQuiz(data: QuizFormData): Promise<ApiResponse<Quiz>> {
-  if (!isFirebaseConfigured()) {
-    return { success: false, error: 'Firebase not configured' };
+  if (shouldUseMockStorage()) {
+    return createLocalQuiz(data);
   }
 
   try {
@@ -126,14 +140,14 @@ export async function createQuiz(data: QuizFormData): Promise<ApiResponse<Quiz>>
     return { success: true, data: newQuiz };
   } catch (error) {
     console.error('Error creating quiz:', error);
-    return { success: false, error: 'Failed to create quiz' };
+    return { success: false, error: 'Hiba a kvíz létrehozásakor' };
   }
 }
 
 // Update quiz
 export async function updateQuiz(id: string, data: Partial<QuizFormData>): Promise<ApiResponse<Quiz>> {
-  if (!isFirebaseConfigured()) {
-    return { success: false, error: 'Firebase not configured' };
+  if (shouldUseMockStorage()) {
+    return updateLocalQuiz(id, data);
   }
 
   try {
@@ -150,14 +164,14 @@ export async function updateQuiz(id: string, data: Partial<QuizFormData>): Promi
     return result;
   } catch (error) {
     console.error('Error updating quiz:', error);
-    return { success: false, error: 'Failed to update quiz' };
+    return { success: false, error: 'Hiba a kvíz frissítésekor' };
   }
 }
 
 // Delete quiz
 export async function deleteQuiz(id: string): Promise<ApiResponse<void>> {
-  if (!isFirebaseConfigured()) {
-    return { success: false, error: 'Firebase not configured' };
+  if (shouldUseMockStorage()) {
+    return deleteLocalQuiz(id);
   }
 
   try {
@@ -166,69 +180,6 @@ export async function deleteQuiz(id: string): Promise<ApiResponse<void>> {
     return { success: true };
   } catch (error) {
     console.error('Error deleting quiz:', error);
-    return { success: false, error: 'Failed to delete quiz' };
+    return { success: false, error: 'Hiba a kvíz törlésekor' };
   }
-}
-
-// Mock data for development without Firebase
-function getMockQuizzes(): Quiz[] {
-  const now = new Date();
-  return [
-    {
-      id: '1',
-      title: 'Disenchantment',
-      titleHu: 'A Kiábrándult Királylány',
-      description: 'Test your knowledge about the animated series Disenchantment!',
-      date: new Date(now.getFullYear(), now.getMonth(), 21),
-      time: '20:00',
-      imageUrl: '/images/disenchantment.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Animation',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: '2',
-      title: 'BoJack Horseman',
-      titleHu: 'BoJack Horseman',
-      description: 'How well do you know BoJack and the gang?',
-      date: new Date(now.getFullYear(), now.getMonth(), 28),
-      time: '20:00',
-      imageUrl: '/images/bojack.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Animation',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: '3',
-      title: 'Devil May Cry',
-      titleHu: 'Devil May Cry',
-      description: 'Netflix anime quiz night!',
-      date: new Date(now.getFullYear(), now.getMonth() + 1, 4),
-      time: '20:00',
-      imageUrl: '/images/dmc.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Anime',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: '4',
-      title: 'Gravity Falls',
-      titleHu: 'Rejtélyek Városkája',
-      description: 'Mystery quiz about the mysterious town!',
-      date: new Date(now.getFullYear(), now.getMonth() + 1, 11),
-      time: '20:00',
-      imageUrl: '/images/gravity-falls.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Animation',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
 }

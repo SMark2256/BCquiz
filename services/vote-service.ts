@@ -11,9 +11,23 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { firestore, isFirebaseConfigured } from '@/lib/firebase';
+import {
+  isMockMode,
+  getLocalVoteTopics,
+  getLocalVoteTopic,
+  createLocalVoteTopic,
+  updateLocalVoteTopic,
+  deleteLocalVoteTopic,
+  incrementLocalVote,
+} from './mock-storage';
 import type { VoteTopic, VoteTopicFormData, ApiResponse } from '@/types';
 
 const COLLECTION_NAME = 'vote_topics';
+
+// Check if we should use local storage
+function shouldUseMockStorage(): boolean {
+  return isMockMode() || !isFirebaseConfigured();
+}
 
 // Helper to convert Firestore document to VoteTopic
 function documentToVoteTopic(doc: { id: string; data: () => Record<string, unknown> }): VoteTopic {
@@ -30,8 +44,8 @@ function documentToVoteTopic(doc: { id: string; data: () => Record<string, unkno
 
 // Get all vote topics
 export async function getVoteTopics(): Promise<ApiResponse<VoteTopic[]>> {
-  if (!isFirebaseConfigured()) {
-    return { success: true, data: getMockVoteTopics() };
+  if (shouldUseMockStorage()) {
+    return { success: true, data: getLocalVoteTopics() };
   }
 
   try {
@@ -44,14 +58,33 @@ export async function getVoteTopics(): Promise<ApiResponse<VoteTopic[]>> {
     return { success: true, data: topics };
   } catch (error) {
     console.error('Error fetching vote topics:', error);
-    return { success: false, error: 'Failed to fetch vote topics' };
+    return { success: false, error: 'Hiba a szavazási témák betöltésekor' };
+  }
+}
+
+// Get single vote topic
+export async function getVoteTopic(id: string): Promise<ApiResponse<VoteTopic>> {
+  if (shouldUseMockStorage()) {
+    const topic = getLocalVoteTopic(id);
+    if (topic) return { success: true, data: topic };
+    return { success: false, error: 'Szavazási téma nem található' };
+  }
+
+  try {
+    const topics = await getVoteTopics();
+    const topic = topics.data?.find(t => t.id === id);
+    if (topic) return { success: true, data: topic };
+    return { success: false, error: 'Szavazási téma nem található' };
+  } catch (error) {
+    console.error('Error fetching vote topic:', error);
+    return { success: false, error: 'Hiba a szavazási téma betöltésekor' };
   }
 }
 
 // Create new vote topic
 export async function createVoteTopic(data: VoteTopicFormData): Promise<ApiResponse<VoteTopic>> {
-  if (!isFirebaseConfigured()) {
-    return { success: false, error: 'Firebase not configured' };
+  if (shouldUseMockStorage()) {
+    return createLocalVoteTopic(data);
   }
 
   try {
@@ -72,14 +105,32 @@ export async function createVoteTopic(data: VoteTopicFormData): Promise<ApiRespo
     return { success: true, data: newTopic };
   } catch (error) {
     console.error('Error creating vote topic:', error);
-    return { success: false, error: 'Failed to create vote topic' };
+    return { success: false, error: 'Hiba a szavazási téma létrehozásakor' };
+  }
+}
+
+// Update vote topic
+export async function updateVoteTopic(id: string, data: Partial<VoteTopicFormData>): Promise<ApiResponse<VoteTopic>> {
+  if (shouldUseMockStorage()) {
+    return updateLocalVoteTopic(id, data);
+  }
+
+  try {
+    const docRef = doc(firestore, COLLECTION_NAME, id);
+    await updateDoc(docRef, data);
+    
+    const result = await getVoteTopic(id);
+    return result;
+  } catch (error) {
+    console.error('Error updating vote topic:', error);
+    return { success: false, error: 'Hiba a szavazási téma frissítésekor' };
   }
 }
 
 // Vote for a topic
-export async function voteForTopic(topicId: string): Promise<ApiResponse<void>> {
-  if (!isFirebaseConfigured()) {
-    return { success: true }; // Simulate success for mock data
+export async function voteForTopic(topicId: string): Promise<ApiResponse<VoteTopic>> {
+  if (shouldUseMockStorage()) {
+    return incrementLocalVote(topicId);
   }
 
   try {
@@ -87,17 +138,19 @@ export async function voteForTopic(topicId: string): Promise<ApiResponse<void>> 
     await updateDoc(docRef, {
       votes: increment(1),
     });
-    return { success: true };
+    
+    const result = await getVoteTopic(topicId);
+    return result;
   } catch (error) {
     console.error('Error voting for topic:', error);
-    return { success: false, error: 'Failed to vote' };
+    return { success: false, error: 'Hiba a szavazat leadásakor' };
   }
 }
 
 // Delete vote topic
 export async function deleteVoteTopic(id: string): Promise<ApiResponse<void>> {
-  if (!isFirebaseConfigured()) {
-    return { success: false, error: 'Firebase not configured' };
+  if (shouldUseMockStorage()) {
+    return deleteLocalVoteTopic(id);
   }
 
   try {
@@ -106,45 +159,6 @@ export async function deleteVoteTopic(id: string): Promise<ApiResponse<void>> {
     return { success: true };
   } catch (error) {
     console.error('Error deleting vote topic:', error);
-    return { success: false, error: 'Failed to delete vote topic' };
+    return { success: false, error: 'Hiba a szavazási téma törlésekor' };
   }
-}
-
-// Mock data for development without Firebase
-function getMockVoteTopics(): VoteTopic[] {
-  const now = new Date();
-  return [
-    {
-      id: '1',
-      title: 'Rick and Morty',
-      description: 'Wubba lubba dub dub!',
-      imageUrl: '/images/rick-morty.jpg',
-      votes: 42,
-      createdAt: now,
-    },
-    {
-      id: '2',
-      title: 'The Witcher',
-      description: 'Toss a coin to your Witcher!',
-      imageUrl: '/images/witcher.jpg',
-      votes: 38,
-      createdAt: now,
-    },
-    {
-      id: '3',
-      title: 'Arcane',
-      description: 'League of Legends animated series',
-      imageUrl: '/images/arcane.jpg',
-      votes: 35,
-      createdAt: now,
-    },
-    {
-      id: '4',
-      title: 'Breaking Bad',
-      description: 'Say my name!',
-      imageUrl: '/images/breaking-bad.jpg',
-      votes: 29,
-      createdAt: now,
-    },
-  ];
 }
