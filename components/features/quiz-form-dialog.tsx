@@ -47,7 +47,6 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
     return date.toISOString().split('T')[0];
   }
 
-  // Update form when quiz changes (for editing)
   useEffect(() => {
     if (open && quiz) {
       setFormData({
@@ -62,7 +61,6 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
         isActive: quiz.isActive,
       });
     } else if (open && !quiz) {
-      // Reset form for new quiz
       setFormData({
         title: '',
         titleHu: '',
@@ -121,18 +119,18 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+      <DialogContent className="max-h-[90vh] w-[95vw] max-w-lg overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>{quiz ? 'Kvíz Szerkesztése' : 'Új Kvíz Létrehozása'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl">{quiz ? 'Kvíz Szerkesztése' : 'Új Kvíz Létrehozása'}</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             {quiz ? 'Módosítsd a kvíz adatait.' : 'Keress egy filmet, sorozatot vagy könyvet, majd add meg a részleteket.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:gap-4">
           {/* Media Search Section */}
-          <div className="flex flex-col gap-2">
-            <Label>Média keresése</Label>
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            <Label className="text-xs sm:text-sm">Média keresése</Label>
             <SearchAndSelect
               onSelect={handleMediaSelect}
               selectedTitle={formData.title || undefined}
@@ -141,9 +139,9 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
 
           {/* Selected Media Preview */}
           {formData.title && (
-            <div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3">
+            <div className="flex items-start gap-2 rounded-lg border bg-muted/30 p-2 sm:gap-3 sm:p-3">
               {formData.imageUrl ? (
-                <div className="relative size-16 shrink-0 overflow-hidden rounded-md">
+                <div className="relative size-12 shrink-0 overflow-hidden rounded-md sm:size-16">
                   <Image
                     src={formData.imageUrl}
                     alt={formData.title}
@@ -153,14 +151,14 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
                   />
                 </div>
               ) : (
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-md bg-muted">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted sm:size-16">
                   <span className="text-xs text-muted-foreground">Nincs kép</span>
                 </div>
               )}
-              <div className="flex flex-1 flex-col gap-1">
-                <span className="font-medium">{formData.title}</span>
+              <div className="flex flex-1 flex-col gap-0.5 min-w-0">
+                <span className="truncate text-sm font-medium">{formData.title}</span>
                 {formData.titleHu && (
-                  <span className="text-sm text-muted-foreground">{formData.titleHu}</span>
+                  <span className="truncate text-xs text-muted-foreground">{formData.titleHu}</span>
                 )}
                 {formData.category && (
                   <span className="text-xs text-muted-foreground">{formData.category}</span>
@@ -170,99 +168,107 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-8 shrink-0"
+                className="size-7 shrink-0 sm:size-8"
                 onClick={clearSelectedMedia}
               >
-                <X className="size-4" />
+                <X className="size-3 sm:size-4" />
                 <span className="sr-only">Törlés</span>
               </Button>
             </div>
           )}
 
-          {/* Manual Input Fields (can override or fill in missing data) */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="title">Cím (eredeti)</Label>
+          {/* Manual Input Fields */}
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            <Label htmlFor="title" className="text-xs sm:text-sm">Cím (eredeti)</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="pl. Disenchantment"
               required
+              className="text-sm"
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="titleHu">Cím (magyar)</Label>
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            <Label htmlFor="titleHu" className="text-xs sm:text-sm">Cím (magyar)</Label>
             <Input
               id="titleHu"
               value={formData.titleHu}
               onChange={(e) => setFormData({ ...formData, titleHu: e.target.value })}
               placeholder="pl. A Kiábrándult Királylány"
+              className="text-sm"
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="description">Leírás</Label>
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            <Label htmlFor="description" className="text-xs sm:text-sm">Leírás</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Rövid leírás a kvízről..."
-              rows={3}
+              rows={2}
+              className="text-sm"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="date">Dátum</Label>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="flex flex-col gap-1.5 sm:gap-2">
+              <Label htmlFor="date" className="text-xs sm:text-sm">Dátum</Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 required
+                className="text-sm"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="time">Időpont</Label>
+            <div className="flex flex-col gap-1.5 sm:gap-2">
+              <Label htmlFor="time" className="text-xs sm:text-sm">Időpont</Label>
               <Input
                 id="time"
                 type="time"
                 value={formData.time}
                 onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                 required
+                className="text-sm"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="location">Helyszín</Label>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="flex flex-col gap-1.5 sm:gap-2">
+              <Label htmlFor="location" className="text-xs sm:text-sm">Helyszín</Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="pl. BarCraft Corvin"
+                className="text-sm"
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="category">Kategória</Label>
+            <div className="flex flex-col gap-1.5 sm:gap-2">
+              <Label htmlFor="category" className="text-xs sm:text-sm">Kategória</Label>
               <Input
                 id="category"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 placeholder="pl. Sorozat"
+                className="text-sm"
               />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="imageUrl">Kép URL</Label>
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            <Label htmlFor="imageUrl" className="text-xs sm:text-sm">Kép URL</Label>
             <Input
               id="imageUrl"
               value={formData.imageUrl}
               onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               placeholder="https://example.com/image.jpg"
+              className="text-sm"
             />
           </div>
 
@@ -272,14 +278,14 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
               checked={formData.isActive}
               onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
             />
-            <Label htmlFor="isActive">Aktív (látható a főoldalon)</Label>
+            <Label htmlFor="isActive" className="text-xs sm:text-sm">Aktív (látható a főoldalon)</Label>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="flex-col gap-2 pt-2 sm:flex-row sm:pt-0">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full text-sm sm:w-auto">
               Mégse
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="w-full text-sm sm:w-auto">
               {isSubmitting ? 'Mentés...' : quiz ? 'Mentés' : 'Létrehozás'}
             </Button>
           </DialogFooter>
