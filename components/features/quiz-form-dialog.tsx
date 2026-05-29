@@ -96,48 +96,48 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{quiz ? 'Edit Quiz' : 'Create New Quiz'}</DialogTitle>
+          <DialogTitle>{quiz ? 'Kvíz Szerkesztése' : 'Új Kvíz Létrehozása'}</DialogTitle>
           <DialogDescription>
-            {quiz ? 'Update the quiz details below.' : 'Fill in the details for the new quiz.'}
+            {quiz ? 'Módosítsd a kvíz adatait.' : 'Add meg az új kvíz adatait.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="title">Title (English)</Label>
+            <Label htmlFor="title">Cím (eredeti)</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g., Disenchantment"
+              placeholder="pl. Disenchantment"
               required
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="titleHu">Title (Hungarian)</Label>
+            <Label htmlFor="titleHu">Cím (magyar)</Label>
             <Input
               id="titleHu"
               value={formData.titleHu}
               onChange={(e) => setFormData({ ...formData, titleHu: e.target.value })}
-              placeholder="e.g., A Kiábrándult Királylány"
+              placeholder="pl. A Kiábrándult Királylány"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Leírás</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Brief description of the quiz..."
+              placeholder="Rövid leírás a kvízről..."
               rows={3}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">Dátum</Label>
               <Input
                 id="date"
                 type="date"
@@ -147,7 +147,7 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="time">Time</Label>
+              <Label htmlFor="time">Időpont</Label>
               <Input
                 id="time"
                 type="time"
@@ -160,27 +160,27 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="location">Helyszín</Label>
               <Input
                 id="location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="e.g., BarCraft Corvin"
+                placeholder="pl. BarCraft Corvin"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Kategória</Label>
               <Input
                 id="category"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="e.g., Animation"
+                placeholder="pl. Animáció"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
+            <Label htmlFor="imageUrl">Kép URL</Label>
             <Input
               id="imageUrl"
               value={formData.imageUrl}
@@ -195,15 +195,15 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
               checked={formData.isActive}
               onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
             />
-            <Label htmlFor="isActive">Active (visible on public dashboard)</Label>
+            <Label htmlFor="isActive">Aktív (látható a főoldalon)</Label>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Mégse
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : quiz ? 'Update Quiz' : 'Create Quiz'}
+              {isSubmitting ? 'Mentés...' : quiz ? 'Mentés' : 'Létrehozás'}
             </Button>
           </DialogFooter>
         </form>

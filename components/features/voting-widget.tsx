@@ -8,18 +8,23 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Vote } from 'lucide-react';
 
 export function VotingWidget() {
-  const { topics, loading, error, vote, hasVoted } = useVoting();
+  const { topics, loading, error, vote, hasVoted, hasVotedAny } = useVoting();
 
   return (
     <Card className="border-2 border-foreground">
       <CardHeader className="border-b border-border pb-4">
         <CardTitle className="flex items-center gap-2 text-xl">
           <Vote className="size-5" />
-          Vote for Next Quiz Topic
+          Szavazz a Következő Témára
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Help us decide what the next quiz night should be about!
+          Segíts eldönteni, miről szóljon a következő kvízest!
         </p>
+        {hasVotedAny && (
+          <p className="mt-2 text-xs font-medium text-primary">
+            Már leadtad a szavazatod. Köszönjük!
+          </p>
+        )}
       </CardHeader>
       <CardContent className="pt-4">
         {loading ? (
@@ -35,7 +40,7 @@ export function VotingWidget() {
           </Alert>
         ) : topics.length === 0 ? (
           <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 text-center">
-            <p className="text-muted-foreground">No topics available for voting.</p>
+            <p className="text-muted-foreground">Jelenleg nincs elérhető téma szavazásra.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -45,6 +50,7 @@ export function VotingWidget() {
                 topic={topic}
                 onVote={vote}
                 hasVoted={hasVoted(topic.id)}
+                hasVotedAny={hasVotedAny}
                 rank={index + 1}
               />
             ))}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { hu } from 'date-fns/locale';
 import { Pencil, Trash2, Plus, MoreVertical, Calendar, Clock } from 'lucide-react';
 import { useQuizzes } from '@/hooks/use-quizzes';
 import { deleteQuiz } from '@/services/quiz-service';
@@ -62,10 +63,10 @@ export function AdminQuizTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Time</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Cím</TableHead>
+              <TableHead>Dátum</TableHead>
+              <TableHead>Időpont</TableHead>
+              <TableHead>Státusz</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -97,10 +98,10 @@ export function AdminQuizTable() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Manage Quizzes</h2>
+        <h2 className="text-lg font-semibold">Kvízek Kezelése</h2>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus data-icon="inline-start" />
-          Add Quiz
+          Új Kvíz
         </Button>
       </div>
 
@@ -108,10 +109,10 @@ export function AdminQuizTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Time</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Cím</TableHead>
+              <TableHead>Dátum</TableHead>
+              <TableHead>Időpont</TableHead>
+              <TableHead>Státusz</TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -119,7 +120,7 @@ export function AdminQuizTable() {
             {quizzes.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                  No quizzes found. Create your first quiz!
+                  Nincsenek kvízek. Hozd létre az elsőt!
                 </TableCell>
               </TableRow>
             ) : (
@@ -136,7 +137,7 @@ export function AdminQuizTable() {
                   <TableCell>
                     <span className="flex items-center gap-1 text-sm">
                       <Calendar className="size-3" />
-                      {format(quiz.date, 'MMM dd, yyyy')}
+                      {format(quiz.date, 'MMM dd.', { locale: hu })}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -147,7 +148,7 @@ export function AdminQuizTable() {
                   </TableCell>
                   <TableCell>
                     <Badge variant={quiz.isActive ? 'default' : 'secondary'}>
-                      {quiz.isActive ? 'Active' : 'Inactive'}
+                      {quiz.isActive ? 'Aktív' : 'Inaktív'}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -156,20 +157,20 @@ export function AdminQuizTable() {
                         className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       >
                         <MoreVertical className="size-4" />
-                        <span className="sr-only">Actions</span>
+                        <span className="sr-only">Műveletek</span>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
                           <DropdownMenuItem onClick={() => setEditingQuiz(quiz)}>
                             <Pencil className="size-4" />
-                            Edit
+                            Szerkesztés
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => setDeletingQuiz(quiz)}
                             className="text-destructive"
                           >
                             <Trash2 className="size-4" />
-                            Delete
+                            Törlés
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
@@ -203,17 +204,17 @@ export function AdminQuizTable() {
       <Dialog open={!!deletingQuiz} onOpenChange={() => setDeletingQuiz(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Quiz</DialogTitle>
+            <DialogTitle>Kvíz Törlése</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{deletingQuiz?.title}&quot;? This action cannot be undone.
+              Biztosan törölni szeretnéd a(z) &quot;{deletingQuiz?.title}&quot; kvízt? Ez a művelet nem visszavonható.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeletingQuiz(null)}>
-              Cancel
+              Mégse
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Törlés...' : 'Törlés'}
             </Button>
           </DialogFooter>
         </DialogContent>

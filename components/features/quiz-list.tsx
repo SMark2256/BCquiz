@@ -31,8 +31,8 @@ export function QuizList() {
   if (quizzes.length === 0) {
     return (
       <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-8 text-center">
-        <p className="text-muted-foreground">No upcoming quizzes scheduled.</p>
-        <p className="mt-1 text-sm text-muted-foreground">Check back soon!</p>
+        <p className="text-muted-foreground">Jelenleg nincs beütemezett kvízest.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Nézz vissza később!</p>
       </div>
     );
   }

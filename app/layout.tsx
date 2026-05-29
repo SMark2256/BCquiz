@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Header } from "@/components/features/header";
-import { Footer } from "@/components/features/footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
@@ -17,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "KVIZESTEK - BarCraft Corvin",
-  description: "Quiz nights at BarCraft Corvin. Test your knowledge and vote for upcoming topics!",
+  description: "Kvízestek a BarCraft Corvinban. Teszteld a tudásod és szavazz a következő témákra!",
 };
 
 export default function RootLayout({
@@ -27,14 +25,12 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="hu"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased bg-background`}
     >
       <body className="min-h-full flex flex-col font-sans">
         <TooltipProvider>
-          <Header />
           <main className="flex-1">{children}</main>
-          <Footer />
         </TooltipProvider>
       </body>
     </html>
