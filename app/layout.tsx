@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -28,6 +29,7 @@ export default function RootLayout({
       lang="hu"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased bg-background`}
     >
+    <SpeedInsights/>
       <body className="min-h-full flex flex-col font-sans">
         <TooltipProvider>
           <main className="flex-1">{children}</main>
