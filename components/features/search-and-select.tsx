@@ -229,7 +229,7 @@ export function SearchAndSelect({ onSelect, selectedTitle }: SearchAndSelectProp
       </button>
 
       {/* Expanded search */}
-      <div className={`w-full rounded-lg border border-input bg-popover shadow-lg ${expanded ? '' : 'hidden'}`}>
+      <div className={`absolute top-full left-0 z-50 w-full mt-1 rounded-lg border border-input bg-popover shadow-lg ${expanded ? '' : 'hidden'}`}>
         <div className="border-b p-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

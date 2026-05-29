@@ -119,7 +119,7 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[95vw] max-w-lg overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">{quiz ? 'Kvíz Szerkesztése' : 'Új Kvíz Létrehozása'}</DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">
@@ -127,7 +127,7 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col max-w-full gap-3 sm:gap-4">
           {/* Media Search Section */}
           <div className="flex flex-col gap-1.5 sm:gap-2">
             <Label className="text-xs sm:text-sm">Média keresése</Label>
