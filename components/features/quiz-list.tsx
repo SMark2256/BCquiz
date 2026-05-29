@@ -38,7 +38,7 @@ export function QuizList() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
       {quizzes.map((quiz) => (
         <QuizCard key={quiz.id} quiz={quiz} />
       ))}
