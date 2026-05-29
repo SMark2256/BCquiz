@@ -30,64 +30,8 @@ function initializeDefaultData(): void {
   if (initialized) return;
 
   const now = new Date();
-  const defaultQuizzes: Quiz[] = [
-    {
-      id: 'mock-1',
-      title: 'Disenchantment',
-      titleHu: 'A Kiábrándult Királylány',
-      description: 'Teszteld a tudásod a Disenchantment animációs sorozatról!',
-      date: new Date(now.getFullYear(), now.getMonth(), 21),
-      time: '20:00',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/xSxnKMIrDEgLClKqjsgk3Pd2GSU.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Sorozat',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: 'mock-2',
-      title: 'BoJack Horseman',
-      titleHu: 'BoJack Horseman',
-      description: 'Mennyire ismered BoJack-et és a bandát?',
-      date: new Date(now.getFullYear(), now.getMonth(), 28),
-      time: '20:00',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/pB9L0jAnEQLMKgexqCEocEW8TA.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Sorozat',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: 'mock-3',
-      title: 'Devil May Cry',
-      titleHu: 'Devil May Cry',
-      description: 'Netflix anime kvízest!',
-      date: new Date(now.getFullYear(), now.getMonth() + 1, 4),
-      time: '20:00',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/fvANULpVOWLOKUQiF9FqPuC3qRX.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Anime',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: 'mock-4',
-      title: 'Gravity Falls',
-      titleHu: 'Rejtélyek Városkája',
-      description: 'Rejtélyes kvíz a rejtélyes városról!',
-      date: new Date(now.getFullYear(), now.getMonth() + 1, 11),
-      time: '20:00',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/fN3SWqvzAXI73BPxHVkJOnes04w.jpg',
-      location: 'BarCraft Corvin',
-      category: 'Sorozat',
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-  ];
+  // Empty array - quizzes will be added manually
+  const defaultQuizzes: Quiz[] = [];
 
   const defaultVoteTopics: VoteTopic[] = [
     {
@@ -386,4 +330,12 @@ export function resetLocalData(): void {
   storage.removeItem(STORAGE_KEYS.VOTE_TOPICS);
   storage.removeItem(STORAGE_KEYS.INITIALIZED);
   initializeDefaultData();
+}
+
+// Clear only quizzes (keep vote topics)
+export function clearLocalQuizzes(): void {
+  const storage = getStorage();
+  if (!storage) return;
+  
+  storage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify([]));
 }
