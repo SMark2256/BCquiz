@@ -1,54 +1,19 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { searchAllMedia, type MediaItem } from '@/services/media-api';
-import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Film, Tv, BookOpen, ImageIcon } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Search, Film, Tv, BookOpen, ImageIcon, X, Check } from 'lucide-react';
 import Image from 'next/image';
 
 interface SearchAndSelectProps {
   onSelect: (item: MediaItem) => void;
   selectedTitle?: string;
-}
-
-function useDebounce(value: string, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useState(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  });
-
-  // Using a simpler approach with useCallback
-  const updateValue = useCallback((newValue: string) => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(newValue);
-    }, delay);
-    return () => clearTimeout(handler);
-  }, [delay]);
-
-  useState(() => {
-    const cleanup = updateValue(value);
-    return cleanup;
-  });
-
-  return debouncedValue;
 }
 
 export function SearchAndSelect({ onSelect, selectedTitle }: SearchAndSelectProps) {
@@ -57,14 +22,12 @@ export function SearchAndSelect({ onSelect, selectedTitle }: SearchAndSelectProp
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   // Debounce the search query
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchQuery(value);
-    // Simple debounce using setTimeout
+  useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedQuery(value);
+      setDebouncedQuery(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
-  }, []);
+  }, [searchQuery]);
 
   const { data: results = [], isLoading, isFetching } = useQuery({
     queryKey: ['media-search', debouncedQuery],
@@ -73,12 +36,12 @@ export function SearchAndSelect({ onSelect, selectedTitle }: SearchAndSelectProp
     staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 
-  const handleSelect = (item: MediaItem) => {
+  const handleSelectItem = useCallback((item: MediaItem) => {
     onSelect(item);
     setOpen(false);
     setSearchQuery('');
     setDebouncedQuery('');
-  };
+  }, [onSelect]);
 
   const getCategoryIcon = (category: MediaItem['category']) => {
     switch (category) {
@@ -107,179 +70,140 @@ export function SearchAndSelect({ onSelect, selectedTitle }: SearchAndSelectProp
   const tvResults = results.filter((r) => r.category === 'tv');
   const bookResults = results.filter((r) => r.category === 'book');
 
-  return (
-    <>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setOpen(true)}
-        className="w-full justify-start text-left font-normal"
-      >
-        <Search data-icon="inline-start" />
-        {selectedTitle || 'Keresés film, sorozat vagy könyv...'}
-      </Button>
-
-      <CommandDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Média keresése"
-        description="Keress filmeket, sorozatokat vagy könyveket"
-      >
-        <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="Írj be egy címet..."
-            value={searchQuery}
-            onValueChange={handleSearchChange}
+  const renderItem = (item: MediaItem) => (
+    <div
+      key={item.id}
+      role="button"
+      tabIndex={0}
+      onClick={() => handleSelectItem(item)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleSelectItem(item);
+        }
+      }}
+      className="flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-muted"
+    >
+      <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">
+        {item.imageUrl ? (
+          <Image
+            src={item.imageUrl}
+            alt={item.title}
+            fill
+            className="object-cover"
+            sizes="40px"
           />
-          <CommandList>
+        ) : (
+          <div className="flex size-full items-center justify-center">
+            <ImageIcon className="size-4 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+        <div className="flex items-center gap-2">
+          <span className="truncate text-sm font-medium">{item.title}</span>
+          {item.year && (
+            <span className="shrink-0 text-xs text-muted-foreground">({item.year})</span>
+          )}
+        </div>
+        {item.originalTitle !== item.title && (
+          <span className="truncate text-xs text-muted-foreground">{item.originalTitle}</span>
+        )}
+      </div>
+      <Badge variant="outline" className={`shrink-0 text-xs ${getCategoryColor(item.category)}`}>
+        {getCategoryIcon(item.category)}
+        <span className="ml-1">{item.categoryLabel}</span>
+      </Badge>
+    </div>
+  );
+
+  const renderGroup = (title: string, items: MediaItem[]) => {
+    if (items.length === 0) return null;
+    return (
+      <div className="mb-2">
+        <h4 className="mb-1 px-2 text-xs font-medium text-muted-foreground">{title}</h4>
+        <div className="flex flex-col">
+          {items.map(renderItem)}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={(props) => (
+          <button
+            {...props}
+            type="button"
+            className="inline-flex w-full items-center justify-start gap-2 rounded-lg border border-input bg-background px-3 py-2 text-sm text-left font-normal hover:bg-muted transition-colors"
+          >
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <span className="flex-1 truncate">
+              {selectedTitle || 'Keresés film, sorozat vagy könyv...'}
+            </span>
+            {selectedTitle && (
+              <Check className="size-4 shrink-0 text-green-600" />
+            )}
+          </button>
+        )}
+      />
+      <PopoverContent 
+        className="w-[400px] p-0" 
+        align="start"
+      >
+        <div className="p-3 pb-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Írj be egy címet..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-8"
+              autoFocus
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <ScrollArea className="max-h-[300px]">
+          <div className="px-3 pb-3">
             {debouncedQuery.length < 2 && (
-              <CommandEmpty>
+              <p className="py-4 text-center text-sm text-muted-foreground">
                 Írj be legalább 2 karaktert a kereséshez...
-              </CommandEmpty>
+              </p>
             )}
 
             {debouncedQuery.length >= 2 && (isLoading || isFetching) && (
-              <div className="flex items-center justify-center py-6">
-                <div className="size-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+              <div className="flex items-center justify-center py-4">
+                <div className="size-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
                 <span className="ml-2 text-sm text-muted-foreground">Keresés...</span>
               </div>
             )}
 
             {debouncedQuery.length >= 2 && !isLoading && !isFetching && results.length === 0 && (
-              <CommandEmpty>Nincs találat a keresésre.</CommandEmpty>
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                Nincs találat a keresésre.
+              </p>
             )}
 
-            {movieResults.length > 0 && (
-              <CommandGroup heading="Filmek">
-                {movieResults.map((item) => (
-                  <CommandItem
-                    key={item.id}
-                    value={item.id}
-                    onSelect={() => handleSelect(item)}
-                    className="flex items-center gap-3 py-3"
-                  >
-                    <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-muted">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.title}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center">
-                          <ImageIcon className="size-5 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-1 flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{item.title}</span>
-                        {item.year && (
-                          <span className="text-xs text-muted-foreground">({item.year})</span>
-                        )}
-                      </div>
-                      {item.originalTitle !== item.title && (
-                        <span className="text-xs text-muted-foreground">{item.originalTitle}</span>
-                      )}
-                    </div>
-                    <Badge variant="outline" className={getCategoryColor(item.category)}>
-                      {getCategoryIcon(item.category)}
-                      <span className="ml-1">{item.categoryLabel}</span>
-                    </Badge>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+            {debouncedQuery.length >= 2 && !isLoading && !isFetching && results.length > 0 && (
+              <>
+                {renderGroup('Filmek', movieResults)}
+                {renderGroup('Sorozatok', tvResults)}
+                {renderGroup('Könyvek', bookResults)}
+              </>
             )}
-
-            {tvResults.length > 0 && (
-              <CommandGroup heading="Sorozatok">
-                {tvResults.map((item) => (
-                  <CommandItem
-                    key={item.id}
-                    value={item.id}
-                    onSelect={() => handleSelect(item)}
-                    className="flex items-center gap-3 py-3"
-                  >
-                    <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-muted">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.title}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center">
-                          <ImageIcon className="size-5 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-1 flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{item.title}</span>
-                        {item.year && (
-                          <span className="text-xs text-muted-foreground">({item.year})</span>
-                        )}
-                      </div>
-                      {item.originalTitle !== item.title && (
-                        <span className="text-xs text-muted-foreground">{item.originalTitle}</span>
-                      )}
-                    </div>
-                    <Badge variant="outline" className={getCategoryColor(item.category)}>
-                      {getCategoryIcon(item.category)}
-                      <span className="ml-1">{item.categoryLabel}</span>
-                    </Badge>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-
-            {bookResults.length > 0 && (
-              <CommandGroup heading="Könyvek">
-                {bookResults.map((item) => (
-                  <CommandItem
-                    key={item.id}
-                    value={item.id}
-                    onSelect={() => handleSelect(item)}
-                    className="flex items-center gap-3 py-3"
-                  >
-                    <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-muted">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.title}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center">
-                          <ImageIcon className="size-5 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-1 flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{item.title}</span>
-                        {item.year && (
-                          <span className="text-xs text-muted-foreground">({item.year})</span>
-                        )}
-                      </div>
-                    </div>
-                    <Badge variant="outline" className={getCategoryColor(item.category)}>
-                      {getCategoryIcon(item.category)}
-                      <span className="ml-1">{item.categoryLabel}</span>
-                    </Badge>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </CommandDialog>
-    </>
+          </div>
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
   );
 }
