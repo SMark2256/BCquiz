@@ -27,12 +27,21 @@ export default function RootLayout({
   return (
     <html
       lang="hu"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased bg-background`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
     <SpeedInsights/>
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans relative">
+      {/*<video*/}
+      {/*    className="fixed inset-0 -z-10 h-full w-full object-cover"*/}
+      {/*    autoPlay*/}
+      {/*    loop*/}
+      {/*    muted*/}
+      {/*    playsInline*/}
+      {/*>*/}
+      {/*  <source src="/LoopingBackground.mp4" type="video/mp4" />*/}
+      {/*</video>*/}
         <TooltipProvider>
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 relative z-10">{children}</main>
         </TooltipProvider>
       </body>
     </html>

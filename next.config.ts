@@ -5,17 +5,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'image.tmdb.org',
-        pathname: '/t/p/**',
+        hostname: '**', // Engedélyez minden aldomaint és fődomaint
       },
       {
-        protocol: 'https',
-        hostname: 'books.google.com',
-        pathname: '/books/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.googleusercontent.com',
+        protocol: 'http',
+        hostname: '**', // Engedélyez minden nem biztonságos forrást is, ha szükséges
       },
     ],
   },
