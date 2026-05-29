@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminQuizTable } from "@/components/features/admin-quiz-table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QueryProvider } from "@/components/providers/query-provider";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { AlertCircle, CalendarDays, Vote, ArrowLeft } from "lucide-react";
 
@@ -9,6 +10,7 @@ export default function AdminPage() {
   const firebaseConfigured = isFirebaseConfigured();
 
   return (
+    <QueryProvider>
     <div className="min-h-screen bg-background">
       {/* Admin Header */}
       <header className="border-b border-border bg-secondary/30">
@@ -71,5 +73,6 @@ export default function AdminPage() {
         </Tabs>
       </div>
     </div>
+    </QueryProvider>
   );
 }

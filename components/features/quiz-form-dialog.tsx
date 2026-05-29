@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createQuiz, updateQuiz } from '@/services/quiz-service';
+import { SearchAndSelect } from '@/components/features/search-and-select';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,7 +16,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { X } from 'lucide-react';
+import Image from 'next/image';
 import type { Quiz } from '@/types';
+import type { MediaItem } from '@/services/media-api';
 
 interface QuizFormDialogProps {
   quiz: Quiz | null;
@@ -42,6 +46,57 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
     return date.toISOString().split('T')[0];
   }
 
+  // Update form when quiz changes (for editing)
+  useEffect(() => {
+    if (open && quiz) {
+      setFormData({
+        title: quiz.title,
+        titleHu: quiz.titleHu || '',
+        description: quiz.description || '',
+        date: formatDateForInput(quiz.date),
+        time: quiz.time,
+        location: quiz.location || 'BarCraft Corvin',
+        category: quiz.category || '',
+        imageUrl: quiz.imageUrl || '',
+        isActive: quiz.isActive,
+      });
+    } else if (open && !quiz) {
+      // Reset form for new quiz
+      setFormData({
+        title: '',
+        titleHu: '',
+        description: '',
+        date: '',
+        time: '20:00',
+        location: 'BarCraft Corvin',
+        category: '',
+        imageUrl: '',
+        isActive: true,
+      });
+    }
+  }, [open, quiz]);
+
+  const handleMediaSelect = (item: MediaItem) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: item.originalTitle,
+      titleHu: item.title !== item.originalTitle ? item.title : '',
+      imageUrl: item.imageUrl || '',
+      category: item.categoryLabel,
+      description: item.description || prev.description,
+    }));
+  };
+
+  const clearSelectedMedia = () => {
+    setFormData((prev) => ({
+      ...prev,
+      title: '',
+      titleHu: '',
+      imageUrl: '',
+      category: '',
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -59,50 +114,70 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
 
     if (result.success) {
       onSuccess();
-      // Reset form
-      setFormData({
-        title: '',
-        titleHu: '',
-        description: '',
-        date: '',
-        time: '20:00',
-        location: 'BarCraft Corvin',
-        category: '',
-        imageUrl: '',
-        isActive: true,
-      });
     }
-  };
-
-  // Update form when quiz changes
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen && quiz) {
-      setFormData({
-        title: quiz.title,
-        titleHu: quiz.titleHu || '',
-        description: quiz.description || '',
-        date: formatDateForInput(quiz.date),
-        time: quiz.time,
-        location: quiz.location || 'BarCraft Corvin',
-        category: quiz.category || '',
-        imageUrl: quiz.imageUrl || '',
-        isActive: quiz.isActive,
-      });
-    }
-    onOpenChange(newOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{quiz ? 'Kvíz Szerkesztése' : 'Új Kvíz Létrehozása'}</DialogTitle>
           <DialogDescription>
-            {quiz ? 'Módosítsd a kvíz adatait.' : 'Add meg az új kvíz adatait.'}
+            {quiz ? 'Módosítsd a kvíz adatait.' : 'Keress egy filmet, sorozatot vagy könyvet, majd add meg a részleteket.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Media Search Section */}
+          <div className="flex flex-col gap-2">
+            <Label>Média keresése</Label>
+            <SearchAndSelect
+              onSelect={handleMediaSelect}
+              selectedTitle={formData.title || undefined}
+            />
+          </div>
+
+          {/* Selected Media Preview */}
+          {formData.title && (
+            <div className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3">
+              {formData.imageUrl ? (
+                <div className="relative size-16 shrink-0 overflow-hidden rounded-md">
+                  <Image
+                    src={formData.imageUrl}
+                    alt={formData.title}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                </div>
+              ) : (
+                <div className="flex size-16 shrink-0 items-center justify-center rounded-md bg-muted">
+                  <span className="text-xs text-muted-foreground">Nincs kép</span>
+                </div>
+              )}
+              <div className="flex flex-1 flex-col gap-1">
+                <span className="font-medium">{formData.title}</span>
+                {formData.titleHu && (
+                  <span className="text-sm text-muted-foreground">{formData.titleHu}</span>
+                )}
+                {formData.category && (
+                  <span className="text-xs text-muted-foreground">{formData.category}</span>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                onClick={clearSelectedMedia}
+              >
+                <X className="size-4" />
+                <span className="sr-only">Törlés</span>
+              </Button>
+            </div>
+          )}
+
+          {/* Manual Input Fields (can override or fill in missing data) */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="title">Cím (eredeti)</Label>
             <Input
@@ -174,7 +249,7 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
                 id="category"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="pl. Animáció"
+                placeholder="pl. Sorozat"
               />
             </div>
           </div>
