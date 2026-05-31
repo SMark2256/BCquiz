@@ -13,70 +13,67 @@ export function QuizCard({ quiz }: QuizCardProps) {
   const month = format(quiz.date, 'MM');
 
   return (
-      <div className="relative z-10 my-2 p-[3px] border-foreground">
-        {/*
-        A kártya külső kerete p-[3px] paddinggel és border-y-2 szegéllyel,
-        hogy meglegyen a vizuális távolság a szélektől.
-      */}
-
-          <div className="relative flex z-50 h-24 items-stretch border-2 rounded-2xl border-foreground bg-muted/80 p-2 sm:h-28">
-              {/* Image Section */}
-          <div className="relative h-full w-32 shrink-0 border-foreground sm:w-24">
-            {quiz.imageUrl ? (
-                <Image
-                    src={quiz.imageUrl}
-                    alt={quiz.title}
-                    fill
-                    className="object-contain"
-                    crossOrigin="anonymous"
-                />
-            ) : (
-                <div className="flex size-full items-center justify-center">
-              <span className="text-2xl font-black text-muted-foreground">
+    <div className="border-x-2 border-t-2 last:border-b-2 border-foreground bg-background">
+      {/* Inner container with padding */}
+      <div className="flex h-20 items-stretch p-1 sm:h-24 sm:p-1.5">
+        {/* Image Section */}
+        <div className="relative h-full w-16 shrink-0 overflow-hidden sm:w-20">
+          {quiz.imageUrl ? (
+            <Image
+              src={quiz.imageUrl}
+              alt={quiz.title}
+              fill
+              className="object-contain"
+              crossOrigin="anonymous"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center bg-muted">
+              <span className="text-xl font-black text-muted-foreground">
                 {quiz.title.charAt(0)}
               </span>
-                </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          {/* Title Section */}
-          <div className="flex flex-1 flex-col items-center justify-center px-3 py-2 text-center sm:px-4">
-            {quiz.titleHu && (
-                <p className="text-[0.6rem] font-bold uppercase leading-tight tracking-wide text-foreground sm:text-xs">
-                  {quiz.titleHu}
-                </p>
-            )}
-            <h3 className="text-sm font-black uppercase leading-tight tracking-tight text-foreground sm:text-lg md:text-xl">
-              {quiz.title}
-            </h3>
-            {quiz.category && (
-                <p className="mt-0.5 text-[0.5rem] font-medium uppercase tracking-widest text-muted-foreground sm:text-[0.6rem]">
-                  ({quiz.category})
-                </p>
-            )}
-          </div>
+        {/* Title Section */}
+        <div className="flex flex-1 flex-col items-center justify-center px-2 text-center sm:px-4">
+          {quiz.titleHu && (
+            <p className="text-[0.5rem] font-bold uppercase leading-tight tracking-wide text-foreground sm:text-[0.65rem]">
+              {quiz.titleHu}
+            </p>
+          )}
+          <h3 className="text-xs font-black uppercase leading-tight tracking-tight text-foreground sm:text-base md:text-lg">
+            {quiz.title}
+          </h3>
+          {quiz.category && (
+            <p className="mt-0.5 text-[0.45rem] font-medium uppercase tracking-widest text-muted-foreground sm:text-[0.55rem]">
+              ({quiz.category})
+            </p>
+          )}
+        </div>
 
-          {/* Date Section - Double border & Corner Dots */}
-          <div className="relative flex h-full w-20 shrink-0 flex-col items-center justify-center border-foreground bg-background p-1.5 sm:w-24">
+        {/* Date Section with double border and corner circles */}
+        <div className="relative flex h-full w-14 shrink-0 items-center justify-center bg-background p-1 sm:w-16 sm:p-1.5">
+          {/* Outer border */}
+          <div className="relative flex size-full items-center justify-center border border-foreground">
+            {/* Inner dark box */}
+            <div className="relative flex size-[calc(100%-4px)] flex-col items-center justify-center bg-foreground text-background sm:size-[calc(100%-6px)]">
+              {/* Corner circles - background colored to create punch-hole effect */}
+              <div className="absolute -left-1 -top-1 size-2 rounded-full bg-background sm:size-2.5" />
+              <div className="absolute -right-1 -top-1 size-2 rounded-full bg-background sm:size-2.5" />
+              <div className="absolute -bottom-1 -left-1 size-2 rounded-full bg-background sm:size-2.5" />
+              <div className="absolute -bottom-1 -right-1 size-2 rounded-full bg-background sm:size-2.5" />
 
-
-              {/* Belső sötét doboz */}
-              <div className="relative flex size-full flex-col items-center justify-center border-1 border-foreground bg-foreground text-background">
-                {/* Belső dekorációs pöttyök - A sötét blokk sarkaiban, szintén fekete szegéllyel */}
-                <div className="absolute -top-1.5 -left-1.5 size-2.5 rounded-full bg-background" />
-                <div className="absolute -top-1.5 -right-1.5 size-2.5 rounded-full bg-background" />
-                <div className="absolute -bottom-1.5 -left-1.5 size-2.5 rounded-full bg-background" />
-                <div className="absolute -bottom-1.5 -right-1.5 size-2.5 rounded-full bg-background" />
-
-                <span className="text-xl font-black leading-none md:text-2xl">
+              <span className="text-base font-black leading-none sm:text-xl">
                 {month}.{day}
               </span>
-                <span className="text-[0.6rem] font-bold sm:text-xs">
+              <span className="text-[0.5rem] font-bold sm:text-[0.6rem]">
                 ({quiz.time})
               </span>
-              </div>
             </div>
+          </div>
         </div>
       </div>
+    </div>
   );
 }
