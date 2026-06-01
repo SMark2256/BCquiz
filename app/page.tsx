@@ -9,7 +9,7 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-transparent">
             {/* Hero Section */ }
-            <header className="flex items-center justify-center bg-foreground py-4 text-background h-40">
+            <header className="flex items-center justify-center bg-foreground py-4 text-background h-30 sm:h-40">
                 <div className="mx-auto max-w-xl px-4 text-center">
                     <div className="relative w-auto">
                         <Image
@@ -17,7 +17,7 @@ export default function Home() {
                             alt="BC Quiz Logo"
                             width={ 200 }
                             height={ 200 }
-                            className="object-cover"
+                            className="object-cover h-[6rem] sm:h-[8rem] w-auto"
                             priority
                         />
                     </div>

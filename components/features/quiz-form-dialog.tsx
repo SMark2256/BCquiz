@@ -119,7 +119,7 @@ export function QuizFormDialog({ quiz, open, onOpenChange, onSuccess }: QuizForm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="max-h-[85vh] sm:max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto pb-20 pt-10 sm:py-10">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">{quiz ? 'Kvíz Szerkesztése' : 'Új Kvíz Létrehozása'}</DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">

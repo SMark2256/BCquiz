@@ -156,7 +156,7 @@ export function PollFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[85vh] sm:max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto pb-20 pt-10 sm:py-10">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Szavazás Szerkesztése' : 'Új Szavazás Létrehozása'}
