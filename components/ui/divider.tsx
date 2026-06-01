@@ -27,7 +27,7 @@ function Divider({ variant = "default", text }: DividerProps) {
         <div className="mb-8 mt-4 flex items-center gap-3 sm:mb-10 sm:gap-4">
             <div className={dividerVariants({ variant })}/>
             {text && (
-                <h2 className="text-xs font-bold uppercase tracking-wider text-muted sm:text-sm">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted/80">
                     {text}
                 </h2>
             )}

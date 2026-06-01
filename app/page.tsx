@@ -9,21 +9,19 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-transparent">
             {/* Hero Section */ }
-            <header className="flex items-center justify-center bg-foreground py-2 sm:py-4 text-background">
+            <header className="flex items-center justify-center bg-foreground py-4 text-background h-40">
                 <div className="mx-auto max-w-xl px-4 text-center">
-                    <div className="relative w-full max-w-[280px] sm:max-w-[350px]">
+                    <div className="relative w-auto">
                         <Image
                             src="/new_bc_main_logo.webp"
                             alt="BC Quiz Logo"
-                            width={ 800 }
-                            height={ 800 }
-                            className="object-cover h-auto w-full object-contain"
+                            width={ 200 }
+                            height={ 200 }
+                            className="object-cover"
                             priority
                         />
                     </div>
-                    <h3 className="my-4 text-5xl font-black uppercase tracking-tight">
-                        Kvízestek
-                    </h3>
+
                     {/*<p className="text-base font-medium tracking-wide sm:text-lg">*/ }
                     {/*  A BARCRAFT CORVINBAN*/ }
                     {/*</p>*/ }
@@ -31,8 +29,11 @@ export default function Home() {
             </header>
 
             {/* Main Content - Single Column */ }
-            <div className="mx-auto max-w-xl px-3 py-6 sm:px-4 sm:py-8">
+            <div className="mx-auto max-w-xl p-4">
                 {/* Divider */ }
+                <h3 className="my-4 text-4xl sm:text-5xl text-muted text-center font-black uppercase tracking-normal">
+                    Kvízestek
+                </h3>
                 <Divider text="Következő Kvízestek"/>
 
                 <section className="mb-8 sm:mb-10">
