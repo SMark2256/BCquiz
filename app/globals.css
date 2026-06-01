@@ -51,7 +51,8 @@
 :root {
   /* Világos mód: Finomabb szürkék és mélyebb kontraszt */
   --background: oklch(0.99 0 0);
-  --foreground: oklch(0.15 0 0);
+  --foreground: oklch(0.18 0 0);
+  /*--foreground: oklch(0.40 0 0);*/
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
@@ -74,7 +75,8 @@
 .dark {
   /* Sötét mód: "Deep Night" paletta a tiszta fekete helyett */
   --background: oklch(0.12 0 0);
-  --foreground: oklch(0.98 0 0);
+  --foreground: oklch(0.40 0 0);
+  --slate: oklch(0.12 0 0);
   --card: oklch(0.16 0 0);
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.16 0 0);
@@ -99,8 +101,10 @@
   }
 
   body {
-    @apply bg-background text-foreground selection:bg-primary/10 selection:text-primary;
+    @apply text-foreground selection:bg-primary/10 selection:text-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background: linear-gradient(329deg,rgba(0, 3, 92, 1) 0%, rgba(95, 0, 110, 1) 52%, rgba(122, 112, 5, 1) 100%);
+    backdrop-filter: blur(20rem);
   }
 
   /* Senior tipográfia: Tracking (betűköz) finomhangolása */
@@ -121,4 +125,28 @@
   .glass-card {
     @apply bg-card/50 backdrop-blur-md border border-white/10 shadow-xl;
   }
+
+  .mythic-text {
+    color: #f8e71c;
+    font-size: 3rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    animation: mythic-text-glow 2.5s infinite ease-in-out;
+  }
+
+  .mythic-icon {
+    filter: sepia(1) saturate(5) hue-rotate(10deg) brightness(1.2);
+  }
+
+  @keyframes mythic-text-glow {
+    0%, 100% {
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
+      transform: scale(1);
+    }
+    50% {
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 215, 0, 0.6);
+      transform: scale(1.02);
+    }
+  }
 }
+

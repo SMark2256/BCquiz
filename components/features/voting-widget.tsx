@@ -5,17 +5,20 @@ import { VoteTopicCard } from './vote-topic-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, LucideStar } from 'lucide-react';
+import MythicIcon from "@/components/ui/mythic-icon";
 
 export function VotingWidget() {
   const { topics, loading, error, vote, hasVoted, hasVotedAny } = useVoting();
 
   return (
-    <div className="overflow-hidden rounded-xl border-2 border-foreground bg-gradient-to-b from-card to-card/50">
+    <div className="overflow-hidden rounded-xl border-2 border-foreground">
       {/* Header with gaming theme */}
       <div className="border-b-2 border-foreground bg-foreground px-4 py-3 text-background sm:px-6 sm:py-4">
         <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-full bg-background/20 sm:size-10">
-            <LucideStar className="size-4 text-background sm:size-5" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-background/15 sm:size-10">
+            <MythicIcon>
+                <LucideStar className="size-4 text-background sm:size-5" />
+            </MythicIcon>
           </div>
           <div>
             <h2 className="text-base font-black uppercase tracking-tight sm:text-lg">
@@ -35,7 +38,7 @@ export function VotingWidget() {
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-4">
+      <div className="p-3 sm:p-4 bg-gradient-to-b from-foreground/80 to-foreground/30">
         {loading ? (
           <div className="flex flex-col gap-3">
             {[...Array(4)].map((_, i) => (

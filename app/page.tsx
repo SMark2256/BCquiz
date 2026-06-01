@@ -1,25 +1,28 @@
 import { QuizList } from "@/components/features/quiz-list";
 import { VotingWidget } from "@/components/features/voting-widget";
 import Image from 'next/image';
+import { Divider } from "@/components/ui/divider";
+import MythicText from "@/components/ui/mythic-text";
+import MythicIcon from "@/components/ui/mythic-icon";
 
 export default function Home() {
     return (
         <div className="min-h-screen bg-transparent">
             {/* Hero Section */ }
-            <header className="flex items-center justify-center bg-foreground/95 py-6 text-background sm:py-8">
+            <header className="flex items-center justify-center bg-foreground py-2 sm:py-4 text-background">
                 <div className="mx-auto max-w-xl px-4 text-center">
                     <div className="relative w-full max-w-[280px] sm:max-w-[350px]">
                         <Image
-                            src="/bc_quiz_logo.webp"
+                            src="/new_bc_main_logo.webp"
                             alt="BC Quiz Logo"
-                            width={ 300 }
-                            height={ 300 }
-                            className="h-auto w-full object-contain"
+                            width={ 800 }
+                            height={ 800 }
+                            className="object-cover h-auto w-full object-contain"
                             priority
                         />
                     </div>
-                    <h3 className="mb-2 text-4xl font-black uppercase tracking-tight sm:text-5xl md:text-6xl">
-                        KVIZESTEK
+                    <h3 className="my-4 text-5xl font-black uppercase tracking-tight">
+                        Kvízestek
                     </h3>
                     {/*<p className="text-base font-medium tracking-wide sm:text-lg">*/ }
                     {/*  A BARCRAFT CORVINBAN*/ }
@@ -29,26 +32,15 @@ export default function Home() {
 
             {/* Main Content - Single Column */ }
             <div className="mx-auto max-w-xl px-3 py-6 sm:px-4 sm:py-8">
-                {/* Upcoming Quizzes Section */ }
+                {/* Divider */ }
+                <Divider text="Következő Kvízestek"/>
+
                 <section className="mb-8 sm:mb-10">
-                    <div className="mb-8 flex items-center gap-3 sm:mb-10 sm:gap-4">
-                        <div className="h-0.5 flex-1 bg-foreground"/>
-                        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground sm:text-sm">
-                            Következő Kvízestek
-                        </h2>
-                        <div className="h-0.5 flex-1 bg-foreground"/>
-                    </div>
                     <QuizList/>
                 </section>
 
                 {/* Divider */ }
-                <div className="mb-8 flex items-center gap-3 sm:mb-10 sm:gap-4">
-                    <div className="h-0.5 flex-1 bg-foreground"/>
-                    <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground sm:text-sm">
-                        Szavazás
-                    </h2>
-                    <div className="h-0.5 flex-1 bg-foreground"/>
-                </div>
+                <Divider text="Szavazás"/>
 
                 {/* Voting Section */ }
                 <section className="mb-8 sm:mb-10">
@@ -65,47 +57,61 @@ export default function Home() {
                         <div className="h-px bg-background/20"/>
                         <div>
                             <p className="text-xs font-medium uppercase tracking-wider opacity-70">Kezdés</p>
-                            <p className="text-lg font-black sm:text-xl">20:00</p>
+                            <MythicText>
+                            <p className="text-lg font-black sm:text-xl">
+                                20:00
+                            </p>
+                            </MythicText>
                         </div>
                         <div className="h-px bg-background/20"/>
                         <div className="flex flex-col w-full text-xs sm:text-sm">
-                            <div className="flex items-center justify-center">
+                            <div className="flex items-center justify-center gap-4 h-14">
 
-                                <Image
-                                    src="/glass_svg.svg"
-                                    alt="potion icon"
-                                    width={ 80 }
-                                    height={ 80 }
-                                    className="object-contain max-h-20 p-2"
-                                />
-                                <div className="flex flex-1 items-center justify-center">
-                                    <p className="text-muted text-base font-black md:text-lg">A foglalás ajánlott.</p>
+                                <MythicIcon>
+                                    <Image
+                                        src="/glass_svg.svg"
+                                        alt="potion icon"
+                                        width={ 80 }
+                                        height={ 80 }
+                                        className="object-contain max-h-20 p-2"
+                                    />
+                                </MythicIcon>
+                                <div className="flex flex-1">
+                                    <p className="flex items-center  text-white font-normal text-base md:text-base">
+                                        A foglalás ajánlott.
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-center">
-                                <Image
-                                    src="/chest_svg.svg"
-                                    alt="chest icon"
-                                    width={ 80 }
-                                    height={ 80 }
-                                    className="object-contain p-2"
-                                />
-                                <div className="flex flex-1 items-center justify-center">
-                                    <p className="text-muted text-base font-black md:text-lg">Jelentkezések alapján a
-                                        nyeremény növekszik.</p>
+                            <div className="flex items-center justify-center gap-4 h-14">
+                                <MythicIcon>
+                                    <Image
+                                        src="/chest_svg.svg"
+                                        alt="chest icon"
+                                        width={ 80 }
+                                        height={ 80 }
+                                        className="object-contain p-2"
+                                    />
+                                </MythicIcon>
+                                <div className="flex flex-1">
+                                    <p className="flex items-center  text-white text-start font-normal text-base md:text-base">
+                                        Jelentkezések alapján a nyeremény növekszik.
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-center">
-                                <Image
-                                    src="/question_svg.svg"
-                                    alt="question icon"
-                                    width={ 80 }
-                                    height={ 80 }
-                                    className="object-contain"
-                                />
-                                <div className="flex flex-1 items-center justify-center">
-                                    <p className="mt-2 text-white text-center font-black text-base md:text-lg">További
-                                        kérdésekkel keresd a pultosokat!</p>
+                            <div className="flex items-center justify-center gap-4 h-14">
+                                <MythicIcon>
+                                    <Image
+                                        src="/question_svg.svg"
+                                        alt="question icon"
+                                        width={ 80 }
+                                        height={ 80 }
+                                        className="object-contain"
+                                    />
+                                </MythicIcon>
+                                <div className="flex flex-1">
+                                    <p className="flex items-center text-white text-start font-black text-base md:text-base">
+                                        További kérdésekkel keresd a pultosokat!
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -114,7 +120,7 @@ export default function Home() {
             </div>
 
             {/* Footer */ }
-            <footer className="border-t border-border bg-foreground py-4 text-center sm:py-6">
+            <footer className="bg-foreground py-4 text-center sm:py-6">
                 <p className="text-lg text-white font-black uppercase tracking-tighter sm:text-xl">
                     BARCRAFT <span className="text-muted-foreground">CORVIN</span>
                 </p>

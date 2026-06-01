@@ -30,12 +30,12 @@ export function VoteTopicCard({ topic, onVote, hasVoted, hasVotedAny }: VoteTopi
   return (
     <div 
       className={cn(
-        "group relative overflow-hidden rounded-lg border-2 bg-card transition-all duration-300",
+        "group relative overflow-hidden rounded-lg border-2 bg-gray-800/50 transition-all duration-300",
         hasVoted 
           ? "border-emerald-500 bg-emerald-500/10" 
           : hasVotedAny 
-            ? "border-muted opacity-50" 
-            : "border-border hover:border-primary hover:shadow-lg hover:shadow-primary/20"
+            ? "border-muted-foreground opacity-50 pointer-events-none"
+            : "border-border/20 hover:border-muted hover:shadow-lg hover:shadow-primary/20"
       )}
     >
       {/* Glow effect for voted item */}
@@ -51,7 +51,7 @@ export function VoteTopicCard({ topic, onVote, hasVoted, hasVotedAny }: VoteTopi
               src={topic.imageUrl}
               alt={topic.title}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className={`object-cover transition-transform duration-300 ${!hasVotedAny && 'group-hover:scale-105'} `}
               crossOrigin="anonymous"
             />
           ) : (
@@ -62,18 +62,18 @@ export function VoteTopicCard({ topic, onVote, hasVoted, hasVotedAny }: VoteTopi
             </div>
           )}
           {/* Vote count overlay on image */}
-          <div className="absolute bottom-1 left-1 rounded bg-black/80 px-1.5 py-0.5 text-[0.6rem] font-bold text-white backdrop-blur-sm sm:text-xs">
+          {hasVotedAny && <div className="absolute bottom-1 left-1 rounded bg-black/80 px-1.5 py-0.5 text-[0.6rem] font-bold text-white backdrop-blur-sm sm:text-xs">
             {topic.votes} szavazat
-          </div>
+          </div>}
         </div>
 
         {/* Content Section */}
         <div className="flex flex-1 flex-col justify-center px-3 py-2 sm:px-4 sm:py-3">
-          <h4 className="text-sm font-bold text-foreground sm:text-base">
+          <h4 className="text-sm font-bold text-background sm:text-base tracking-wide">
             {topic.title}
           </h4>
           {topic.description && (
-            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+            <p className="mt-0.5 line-clamp-2 text-xs text-muted sm:text-sm">
               {topic.description}
             </p>
           )}
@@ -92,7 +92,7 @@ export function VoteTopicCard({ topic, onVote, hasVoted, hasVotedAny }: VoteTopi
                 ? "bg-emerald-600 hover:bg-emerald-700" 
                 : hasVotedAny 
                   ? "cursor-not-allowed" 
-                  : "bg-primary hover:bg-primary/90 hover:scale-105"
+                  : "bg-foreground hover:bg-muted-foreground hover:scale-105"
             )}
           >
             {isVoting ? (
