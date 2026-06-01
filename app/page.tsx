@@ -68,7 +68,7 @@ export default function Home() {
               <div className="flex gap-2 items-center justify-center">
 
                 <Image
-                    src="/potion.svg"
+                    src="/new_potion.svg"
                     alt="potion icon"
                     width={80}
                     height={50}
@@ -80,7 +80,7 @@ export default function Home() {
               </div>
               <div className="flex gap-2 items-center justify-center">
                 <Image
-                    src="/chest.svg"
+                    src="/new_chest.svg"
                     alt="chest icon"
                     width={80}
                     height={80}
@@ -92,7 +92,7 @@ export default function Home() {
               </div>
               <div className="flex gap-2 items-center justify-center">
                 <Image
-                    src="/question.svg"
+                    src="/new_question.svg"
                     alt="question icon"
                     width={80}
                     height={80}

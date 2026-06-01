@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AdminQuizTable } from "@/components/features/admin-quiz-table";
-import { AdminVoteTopicsTable } from "@/components/features/admin-vote-topics-table";
+import { AdminPollsTable } from "@/components/features/admin-polls-table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -94,7 +94,7 @@ function AdminContent() {
           </TabsContent>
 
           <TabsContent value="voting">
-            <AdminVoteTopicsTable />
+            <AdminPollsTable />
           </TabsContent>
         </Tabs>
       </div>

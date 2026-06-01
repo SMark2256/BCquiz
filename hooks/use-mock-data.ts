@@ -6,6 +6,7 @@ import {
   getLocalQuizzes,
   getLocalUpcomingQuizzes,
   getLocalVoteTopics,
+  getLocalPolls,
   createLocalQuiz,
   updateLocalQuiz,
   deleteLocalQuiz,
@@ -13,9 +14,14 @@ import {
   updateLocalVoteTopic,
   deleteLocalVoteTopic,
   incrementLocalVote,
+  createLocalPoll,
+  updateLocalPoll,
+  deleteLocalPoll,
+  voteLocalPollOption,
+  resetLocalPollVotes,
   resetLocalData,
 } from '@/services/mock-storage';
-import type { Quiz, QuizFormData, VoteTopic, VoteTopicFormData, ApiResponse } from '@/types';
+import type { Quiz, QuizFormData, VoteTopic, VoteTopicFormData, Poll, PollFormData, ApiResponse } from '@/types';
 
 // Create a simple event emitter for storage changes
 const storageListeners = new Set<() => void>();
@@ -43,6 +49,11 @@ function getUpcomingQuizzesSnapshot(): Quiz[] {
 function getVoteTopicsSnapshot(): VoteTopic[] {
   if (typeof window === 'undefined') return [];
   return getLocalVoteTopics();
+}
+
+function getPollsSnapshot(): Poll[] {
+  if (typeof window === 'undefined') return [];
+  return getLocalPolls();
 }
 
 // Server snapshot (empty arrays for SSR)
@@ -138,6 +149,63 @@ export function useMockVoteTopics() {
     updateTopic,
     deleteTopic,
     vote,
+    refresh,
+    isMockMode: isMockMode(),
+  };
+}
+
+/**
+ * Hook to manage polls with localStorage persistence
+ * Provides reactive updates when data changes
+ */
+export function useMockPolls() {
+  const polls = useSyncExternalStore(
+    subscribeToStorage,
+    getPollsSnapshot,
+    getServerSnapshot
+  );
+
+  const createPoll = useCallback((data: PollFormData): ApiResponse<Poll> => {
+    const result = createLocalPoll(data);
+    if (result.success) notifyStorageChange();
+    return result;
+  }, []);
+
+  const updatePoll = useCallback((id: string, data: Partial<PollFormData>): ApiResponse<Poll> => {
+    const result = updateLocalPoll(id, data);
+    if (result.success) notifyStorageChange();
+    return result;
+  }, []);
+
+  const deletePoll = useCallback((id: string): ApiResponse<void> => {
+    const result = deleteLocalPoll(id);
+    if (result.success) notifyStorageChange();
+    return result;
+  }, []);
+
+  const votePollOption = useCallback((pollId: string, optionId: string): ApiResponse<Poll> => {
+    const result = voteLocalPollOption(pollId, optionId);
+    if (result.success) notifyStorageChange();
+    return result;
+  }, []);
+
+  const resetVotes = useCallback((pollId: string): ApiResponse<Poll> => {
+    const result = resetLocalPollVotes(pollId);
+    if (result.success) notifyStorageChange();
+    return result;
+  }, []);
+
+  const refresh = useCallback(() => {
+    notifyStorageChange();
+  }, []);
+
+  return {
+    polls,
+    createPoll,
+    updatePoll,
+    deletePoll,
+    votePollOption,
+    resetVotes,
     refresh,
     isMockMode: isMockMode(),
   };
