@@ -32,7 +32,36 @@ function initializeDefaultData(): void {
 
   const now = new Date();
   // Empty array - quizzes will be added manually
-  const defaultQuizzes: Quiz[] = [];
+  const defaultQuizzes: Quiz[] = [
+    {
+      "title": "The Boys",
+      "titleHu": "A fiúk",
+      "description": "A sorozat egy olyan korban játszódik, ahol a szuperhősök többsége el van telve celeb státuszával és ez gyakran felelőtlen viselkedéssel párosul, ami a világ biztonságát is veszélybe sodorja. A középpontban egy renegát csapat áll, amely ezekkel a korrupt, elkanászodott hősökkel foglalkozik, s ha kell, likvidálja őket.",
+      "date": new Date("2026-06-11T00:00:00.000Z"),
+      "time": "20:00",
+      "location": "BarCraft Corvin",
+      "category": "Sorozat",
+      "imageUrl": "https://image.tmdb.org/t/p/w500/V2UjGqe24QJJHyEChd4D1AxmOB.jpg",
+      "isActive": true,
+      "id": "mock-1780345661264",
+      "createdAt": new Date("2026-06-01T20:27:41.264Z"),
+      "updatedAt": new Date("2026-06-01T20:27:41.264Z")
+    },
+    {
+      "title": "The Witcher",
+      "titleHu": "Vaják",
+      "description": "Ríviai Geralt, a felbérelhető, mutálódott szörnyvadász végzete felé sodroudik egy vészterhes világban, ahol az emberek gyakran gonoszabbak a szörnyeknél.",
+      "date": new Date("2026-06-19T00:00:00.000Z"),
+      "time": "20:00",
+      "location": "BarCraft Corvin",
+      "category": "Sorozat",
+      "imageUrl": "https://image.tmdb.org/t/p/w500/qJU4px38JAEF4iN5sh41EkO2n7x.jpg",
+      "isActive": true,
+      "id": "mock-1780345667603",
+      "createdAt": new Date("2026-06-01T20:27:47.603Z"),
+      "updatedAt": new Date("2026-06-01T20:27:47.603Z")
+    }
+  ];
 
   const defaultVoteTopics: VoteTopic[] = [
     {
@@ -119,7 +148,7 @@ export function getLocalQuizzes(): Quiz[] {
 }
 
 export function getLocalUpcomingQuizzes(): Quiz[] {
-  const now = new Date();
+  const now = new Date(-1);
   return getLocalQuizzes().filter(q => q.isActive && q.date >= now);
 }
 
