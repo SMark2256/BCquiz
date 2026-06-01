@@ -4,7 +4,7 @@ import { useVoting } from '@/hooks/use-voting';
 import { VoteTopicCard } from './vote-topic-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Trophy } from 'lucide-react';
+import { AlertCircle, LucideStar } from 'lucide-react';
 
 export function VotingWidget() {
   const { topics, loading, error, vote, hasVoted, hasVotedAny } = useVoting();
@@ -15,11 +15,11 @@ export function VotingWidget() {
       <div className="border-b-2 border-foreground bg-foreground px-4 py-3 text-background sm:px-6 sm:py-4">
         <div className="flex items-center gap-3">
           <div className="flex size-8 items-center justify-center rounded-full bg-background/20 sm:size-10">
-            <Trophy className="size-4 text-background sm:size-5" />
+            <LucideStar className="size-4 text-background sm:size-5" />
           </div>
           <div>
             <h2 className="text-base font-black uppercase tracking-tight sm:text-lg">
-              Szavazz a Következő Témára
+              Szavazz a Következő Kvízest Témára
             </h2>
             <p className="text-xs text-background/70 sm:text-sm">
               Segíts eldönteni, miről szóljon a következő kvízest!

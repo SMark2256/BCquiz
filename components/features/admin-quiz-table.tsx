@@ -88,8 +88,7 @@ export function AdminQuizTable() {
         <h2 className="text-base font-semibold sm:text-lg">Kvízek Kezelése</h2>
         <Button onClick={() => setIsCreateOpen(true)} size="sm" className="text-xs sm:text-sm">
           <Plus data-icon="inline-start" />
-          <span className="hidden xs:inline">Új Kvíz</span>
-          <span className="xs:hidden">Új</span>
+          <span>Új Kvíz</span>
         </Button>
       </div>
 
@@ -104,58 +103,68 @@ export function AdminQuizTable() {
         ) : (
           quizzes.map((quiz) => (
             <Card key={quiz.id} className="overflow-hidden">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-start gap-3">
+              <CardContent className="py-2 px-4">
+                <div className="flex items-start gap-3 relative">
                   {/* Quiz Info */}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex flex-col flex-1 gap-3">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium sm:text-base">{quiz.title}</p>
+                      <div className="min-w-0 flex-1 max-w-5/6">
+                        <p className="flex-wrap font-medium text-base">{quiz.title}</p>
                         {quiz.titleHu && (
-                          <p className="truncate text-xs text-muted-foreground">{quiz.titleHu}</p>
+                          <p className="flex-wrap text-sm text-muted-foreground">{quiz.titleHu}</p>
                         )}
                       </div>
-                      <Badge variant={quiz.isActive ? 'default' : 'secondary'} className="shrink-0 text-xs">
-                        {quiz.isActive ? 'Aktív' : 'Inaktív'}
-                      </Badge>
                     </div>
                     
-                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:gap-3 sm:text-sm">
+                    <div className="flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base">
                       <span className="flex items-center gap-1">
-                        <Calendar className="size-3" />
+                        <Calendar className="size-4" />
                         {format(quiz.date, 'MMM dd.', { locale: hu })}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="size-3" />
+                        <Clock className="size-4" />
                         {quiz.time}
                       </span>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    >
-                      <MoreVertical className="size-4" />
-                      <span className="sr-only">Műveletek</span>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuGroup>
-                        <DropdownMenuItem onClick={() => setEditingQuiz(quiz)}>
-                          <Pencil className="size-4" />
-                          Szerkesztés
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setDeletingQuiz(quiz)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="size-4" />
-                          Törlés
-                        </DropdownMenuItem>
-                      </DropdownMenuGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="absolute -top-2 right-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        <Button
+                            size='sm'
+                            variant={
+                              'outline'
+                            }>
+                        <MoreVertical className="size-4" />
+                        </Button>
+                        <span className="sr-only">Műveletek</span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem onClick={() => setEditingQuiz(quiz)}>
+                            <Pencil className="size-4" />
+                            Szerkesztés
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setDeletingQuiz(quiz)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="size-4" />
+                            Törlés
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="absolute bottom-0 right-0">
+                    <Badge variant={quiz.isActive ? 'default' : 'secondary'}>
+                      {quiz.isActive ? 'Aktív' : 'Inaktív'}
+                    </Badge>
+                  </div>
                 </div>
               </CardContent>
             </Card>

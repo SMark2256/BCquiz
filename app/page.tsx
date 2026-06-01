@@ -64,35 +64,35 @@ export default function Home() {
               <p className="text-lg font-black sm:text-xl">20:00</p>
             </div>
             <div className="h-px bg-background/20" />
-            <div className="flex flex-col gap-4 w-full text-xs sm:text-sm">
-              <div className="flex gap-2 items-center justify-center">
+            <div className="flex flex-col w-full text-xs sm:text-sm">
+              <div className="flex items-center justify-center">
 
                 <Image
-                    src="/new_potion.svg"
+                    src="/glass_svg.svg"
                     alt="potion icon"
                     width={80}
-                    height={50}
-                    className="object-contain"
+                    height={80}
+                    className="object-contain max-h-20 p-2"
                 />
                 <div className="flex flex-1 items-center justify-center">
               <p className="text-muted text-base font-black md:text-lg">A foglalás ajánlott.</p>
                 </div>
               </div>
-              <div className="flex gap-2 items-center justify-center">
+              <div className="flex items-center justify-center">
                 <Image
-                    src="/new_chest.svg"
+                    src="/chest_svg.svg"
                     alt="chest icon"
                     width={80}
                     height={80}
-                    className="object-contain"
+                    className="object-contain p-2"
                 />
                 <div className="flex flex-1 items-center justify-center">
                   <p className="text-muted text-base font-black md:text-lg">Jelentkezések alapján a nyeremény növekszik.</p>
                 </div>
               </div>
-              <div className="flex gap-2 items-center justify-center">
+              <div className="flex items-center justify-center">
                 <Image
-                    src="/new_question.svg"
+                    src="/question_svg.svg"
                     alt="question icon"
                     width={80}
                     height={80}
