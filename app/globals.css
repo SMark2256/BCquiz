@@ -103,8 +103,21 @@
   body {
     @apply text-foreground selection:bg-primary/10 selection:text-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    background: linear-gradient(329deg,rgba(0, 3, 92, 1) 0%, rgba(95, 0, 110, 1) 52%, rgba(122, 112, 5, 1) 100%);
-    backdrop-filter: blur(20rem);
+    position: relative;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: "";
+    position: fixed; /* Fixen tartja a hátteret a kijelzőn */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;   /* A tartalom mögé teszi */
+    background: linear-gradient(329deg, rgba(0, 3, 92, 1) 0%, rgba(95, 0, 110, 1) 52%, rgba(122, 112, 5, 1) 100%);
+    /* Itt már nem kell blur, mert a méretezés fix */
   }
 
   /* Senior tipográfia: Tracking (betűköz) finomhangolása */
