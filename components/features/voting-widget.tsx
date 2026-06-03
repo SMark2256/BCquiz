@@ -11,9 +11,9 @@ export function VotingWidget() {
     const { topics, loading, error, vote, hasVoted, hasVotedAny } = useVoting();
 
     return (
-        <div className="overflow-hidden rounded-xl border-2 border-foreground">
+        <div className="overflow-hidden rounded-xl border-2 border-white/10 bg-foreground p-1">
             {/* Header with gaming theme */ }
-            <div className="border-b-2 border-foreground bg-foreground px-4 py-3 text-background sm:px-6 sm:py-4">
+            <div className="border-b-2 border-foreground px-4 py-3 text-background sm:px-6 sm:py-4">
                 <div className="flex items-center gap-3">
                     <div className="flex size-8 items-center justify-center rounded-full bg-background/15 sm:size-10">
                         <MythicIcon>
@@ -39,7 +39,7 @@ export function VotingWidget() {
             </div>
 
             {/* Content */ }
-            <div className="p-3 sm:p-4 bg-gradient-to-b from-foreground/80 to-foreground/30">
+            <div className="p-3 sm:p-4">
                 { loading ? (
                     <div className="flex flex-col gap-3">
                         { [ ...Array(4) ].map((_, i) => (
@@ -71,7 +71,7 @@ export function VotingWidget() {
                         </p>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-2 sm:gap-3">
+                    <div className="flex flex-col gap-3 sm:gap-4">
                         { topics.map((topic) => (
                             <VoteTopicCard
                                 key={ topic.id }

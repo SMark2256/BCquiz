@@ -9,15 +9,15 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-transparent">
             {/* Hero Section */ }
-            <header className="flex items-center justify-center bg-foreground py-4 text-background h-30 sm:h-40">
+            <header className="flex items-center justify-center bg-foreground/0 text-background pt-4 mt-4 sm:mt-8 h-40 sm:h-48">
                 <div className="mx-auto max-w-xl px-4 text-center">
                     <div className="relative w-auto">
                         <Image
-                            src="/new_bc_main_logo.webp"
+                            src="/BarCraft_logo_Corvin.png"
                             alt="BC Quiz Logo"
                             width={ 200 }
                             height={ 200 }
-                            className="object-cover h-[6rem] sm:h-[8rem] w-auto"
+                            className="header-logo h-[12rem] sm:h-[14rem]"
                             priority
                         />
                     </div>
@@ -31,7 +31,7 @@ export default function Home() {
             {/* Main Content - Single Column */ }
             <div className="mx-auto max-w-xl p-4">
                 {/* Divider */ }
-                <h3 className="my-4 text-4xl sm:text-5xl text-muted text-center font-black uppercase tracking-normal">
+                <h3 className="my-8 text-4xl sm:text-5xl text-muted text-center font-black uppercase tracking-normal">
                     Kvízestek
                 </h3>
                 <Divider text="Következő Kvízestek"/>
@@ -49,19 +49,25 @@ export default function Home() {
                 </section>
 
                 {/* Info Section */ }
-                <section className="rounded-lg border-2 border-foreground bg-foreground p-4 text-background sm:p-6">
+                <section className="rounded-lg border-2 border-white/10 bg-foreground p-4 text-background sm:p-6">
                     <div className="flex flex-col gap-3 text-center sm:gap-4">
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wider opacity-70">Helyszín</p>
-                            <p className="text-lg font-black tracking-tight sm:text-xl">BARCRAFT CORVIN</p>
+                            <p className="text-xs font-medium uppercase tracking-wider opacity-70">
+                                Helyszín
+                            </p>
+                            <p className="text-lg font-black tracking-tight sm:text-xl">
+                                1092 Budapest, Ferenc Körút 34
+                            </p>
                         </div>
                         <div className="h-px bg-background/20"/>
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wider opacity-70">Kezdés</p>
-                            <MythicText>
-                            <p className="text-lg font-black sm:text-xl">
-                                20:00
+                            <p className="text-xs font-medium uppercase tracking-wider opacity-70">
+                                Kezdés
                             </p>
+                            <MythicText>
+                                <p className="text-lg font-black sm:text-xl">
+                                    20:00
+                                </p>
                             </MythicText>
                         </div>
                         <div className="h-px bg-background/20"/>
@@ -121,9 +127,12 @@ export default function Home() {
             </div>
 
             {/* Footer */ }
-            <footer className="bg-foreground py-4 text-center sm:py-6">
-                <p className="text-lg text-white font-black uppercase tracking-tighter sm:text-xl">
-                    BARCRAFT <span className="text-muted-foreground">CORVIN</span>
+            <footer className="py-4 text-center sm:py-6">
+                {/*<p className="text-lg text-white font-black uppercase tracking-tighter sm:text-xl">*/}
+                {/*    BARCRAFT <span className="text-muted-foreground">CORVIN</span>*/}
+                {/*</p>*/}
+                <p className="text-xs text-muted/60 leading-3.5 text-center tracking-wide">
+                    © 2026 BarCraft Budapest. Minden jog fenntartva.
                 </p>
             </footer>
         </div>

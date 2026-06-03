@@ -30,7 +30,7 @@ export function VoteTopicCard({ topic, onVote, hasVoted, hasVotedAny }: VoteTopi
   return (
     <div 
       className={cn(
-        "group relative overflow-hidden rounded-lg border-2 bg-gray-800/50 transition-all duration-300",
+        "group relative overflow-hidden rounded-lg border-2 quiz-cards transition-all duration-300",
         hasVoted 
           ? "border-emerald-500 bg-emerald-500/10" 
           : hasVotedAny 

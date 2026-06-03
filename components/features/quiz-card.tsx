@@ -14,14 +14,14 @@ export function QuizCard({ quiz }: QuizCardProps) {
     const month = format(quiz.date, 'MM');
 
     return (
-        <div className='relative overflow-hidden rounded-lg border-2 border-foreground transition-all'>
+        <div className='relative overflow-hidden rounded-lg border-2 border-white/10 transition-all quiz-cards'>
             {/*
         A kártya külső kerete p-[3px] paddinggel és border-y-2 szegéllyel,
         hogy meglegyen a vizuális távolság a szélektől.
       */ }
 
             <div
-                className="relative flex z-50 h-24 items-stretch bg-gray-800/50 text-white sm:h-28">
+                className="relative flex z-50 h-24 items-stretch text-white sm:h-28">
                 {/* Image Section */ }
                 <div className="relative flex shrink-0 items-stretch">
                     { quiz.imageUrl ? (
