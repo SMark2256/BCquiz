@@ -178,5 +178,5 @@ export async function searchAllMedia(query: string): Promise<MediaItem[]> {
     ]);
 
     // Combine and sort by relevance (TMDb first, then books)
-    return [ ...tmdbResults, ...gameResults, ...booksResults ];
+    return [ ...gameResults, ...tmdbResults, ...booksResults ];
 }
