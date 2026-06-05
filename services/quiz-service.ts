@@ -245,3 +245,30 @@ export async function deleteQuiz(id: string): Promise<ApiResponse<void>> {
 
 
 
+
+// Toggle quiz active status
+export async function toggleQuizActive(id: string): Promise<ApiResponse<Quiz>> {
+    if (shouldUseMockStorage()) {
+        return (await import('./mock-storage')).toggleLocalQuizActive(id);
+    }
+
+    try {
+        const quizResult = await getQuiz(id);
+        if (!quizResult.success || !quizResult.data) {
+            return { success: false, error: 'Kvíz nem található' };
+        }
+
+        const docRef = doc(firestore, COLLECTION_NAME, id);
+        const newActiveState = !quizResult.data.isActive;
+        
+        await updateDoc(docRef, {
+            isActive: newActiveState,
+            updatedAt: Timestamp.fromDate(new Date()),
+        });
+
+        return { success: true, data: { ...quizResult.data, isActive: newActiveState } };
+    } catch (error) {
+        console.error('Error toggling quiz active status:', error);
+        return { success: false, error: 'Hiba a kvíz állapotának módosításakor' };
+    }
+}

@@ -192,5 +192,10 @@
       transform: scale(1.02);
     }
   }
+
+  .drop-down-menu-item{
+    @apply flex gap-2 justify-between items-center w-full cursor-pointer;
+  }
+
 }
 

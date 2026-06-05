@@ -190,7 +190,8 @@ export function AdminPollsTable() {
                                         </div>
                                     </div>
 
-                                    <div className="absolute flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base bottom-3 left-3">
+                                    <div
+                                        className="absolute flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base bottom-3 left-3">
                                             <span className="flex items-center gap-1">
                                                 <CalendarIcon className="size-4"/>
                                                 { format(poll.createdAt, 'yyyy. MMM dd.', { locale: hu }) }
@@ -208,27 +209,36 @@ export function AdminPollsTable() {
                                     <div className="absolute top-3 right-3">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger
-                                                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
                                             >
                                                 <MoreVertical className="size-4"/>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={ () => handleEdit(poll) }>
-                                                    <Pencil className="size-4"/> Szerkesztés
+                                            <DropdownMenuContent align="end" className="w-38 sm:w-32">
+                                                <DropdownMenuItem onClick={ () => handleEdit(poll) }
+                                                                  className="drop-down-menu-item">
+                                                    <Pencil className="size-4"/>
+                                                    <p className="flex-1">
+                                                        Szerkesztés
+                                                    </p>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={ () => handleToggleActive(poll.id) }>
+                                                <DropdownMenuItem onClick={ () => handleToggleActive(poll.id) }
+                                                                  className="drop-down-menu-item">
                                                     { poll.isActive ? <PowerOff className="size-4"/> :
                                                         <Power className="size-4"/> }
-                                                    { poll.isActive ? 'Deaktiválás' : 'Aktiválás' }
+                                                    <p className="flex-1">
+                                                        { poll.isActive ? 'Deaktiválás' : 'Aktiválás' }
+                                                    </p>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={ () => setResetId(poll.id) }
-                                                                  className="text-amber-600">
-                                                    <RotateCcw className="size-4"/> Szavazatok nullázása
+                                                                  className="text-amber-600 drop-down-menu-item">
+                                                    <RotateCcw className="size-4"/>
+                                                    <p className="flex-1">Szavazatok nullázása</p>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator/>
                                                 <DropdownMenuItem onClick={ () => setDeleteId(poll.id) }
-                                                                  className="text-destructive">
-                                                    <Trash2 className="size-4"/> Törlés
+                                                                  className="text-destructive drop-down-menu-item">
+                                                    <Trash2 className="size-4"/>
+                                                    <p className="flex-1">Törlés</p>
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

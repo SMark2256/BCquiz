@@ -9,6 +9,7 @@ import "./globals.css";
 const geistSans = Geist({
     variable: "--font-geist-sans",
     subsets: [ "latin" ],
+    display: 'swap'
 });
 
 const geistMono = Geist_Mono({
@@ -19,6 +20,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "KVIZESTEK - BarCraft Corvin",
     description: "Kvízestek a BarCraft Corvinban. Teszteld a tudásod és szavazz a következő témákra!",
+    alternates: {
+        canonical: 'https://www.barcraft-corvin.hu',
+    },
 };
 
 export default function RootLayout({
@@ -33,10 +37,8 @@ export default function RootLayout({
             suppressHydrationWarning
         >
             <Head>
-                <link rel="preconnect" href="https://vercel.live"/>
-                <link rel="preconnect" href="https://image.tmdb.org" />
-                <link rel="preconnect" href="https://api.igdb.com" />
-                <link rel="dns-prefetch" href="https://www.googleapis.com" />
+                <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
+                <link rel="preconnect" href="https://images.igdb.com" crossOrigin="anonymous" />
             </Head>
             <body className="min-h-full flex flex-col font-sans relative"
                   suppressHydrationWarning>

@@ -14,7 +14,7 @@ export default function Home() {
                 <div className="mx-auto max-w-xl px-4 text-center">
                     <div className="relative w-auto">
                         <Image
-                            src="/BarCraft_logo_Corvin.png"
+                            src="/BarCraft_logo_Corvin.webp"
                             alt="BC Quiz Logo"
                             width={385}
                             height={336}

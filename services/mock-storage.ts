@@ -1,4 +1,4 @@
-// LocalStorage-based persistence for development/testing without Firebase
+﻿// LocalStorage-based persistence for development/testing without Firebase
 import type { Quiz, QuizFormData, VoteTopic, VoteTopicFormData, Poll, PollFormData, PollOption, ApiResponse } from '@/types';
 
 const STORAGE_KEYS = {
@@ -628,3 +628,4 @@ export function resetLocalPollVotes(pollId: string): ApiResponse<Poll> {
     return { success: false, error: 'Hiba történt a szavazatok nullázásakor' };
   }
 }
+
