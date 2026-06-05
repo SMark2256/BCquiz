@@ -32,7 +32,7 @@ import { QuizFormDialog } from './quiz-form-dialog';
 import type { Quiz } from '@/types';
 
 export function AdminQuizTable() {
-  const { quizzes, loading, error, refetch } = useQuizzes(false);
+  const { quizzes, loading, error } = useQuizzes(false);
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [deletingQuiz, setDeletingQuiz] = useState<Quiz | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -202,3 +202,5 @@ export function AdminQuizTable() {
     </div>
   );
 }
+
+
