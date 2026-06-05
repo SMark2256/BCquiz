@@ -1,4 +1,4 @@
-// Media API service for TMDb and Google Books
+// Media API service for TMDb and Google Books and IGDB
 // Fetches and unifies data from both APIs
 
 export interface MediaItem {
@@ -54,11 +54,13 @@ interface IGDBGame {
         url: string;
     };
     first_release_date?: number;
+    summary?: string;
 }
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const IGDB_API_KEY = process.env.NEXT_PUBLIC_IGDB_API_KEY;
 const GOOGLE_BOOKS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY;
+
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 export async function searchTMDb(query: string): Promise<MediaItem[]> {
@@ -132,14 +134,13 @@ export async function searchIGDB(query: string): Promise<MediaItem[]> {
     if (!query.trim()) return [];
 
     try {
-        // Fontos: Itt pontosan ugyanazt a formátumot használjuk, mint a Postmanben
-        const queryBody = `fields name, cover.url, first_release_date; search "${query.replace(/"/g, '\\"')}"; limit 10;`;
+        const queryBody = `fields name, cover.url, first_release_date, summary; search "${query.replace(/"/g, '\\"')}"; limit 10;`;
 
-        console.log('Frontend küldött lekérdezés:', queryBody); // Ezt figyeld a böngésző konzoljában!
+        console.log('Frontend küldött lekérdezés:', queryBody);
 
         const response = await fetch('/api/igdb', {
             method: 'POST',
-            body: queryBody, // Nyers szövegként küldjük
+            body: queryBody,
         });
 
         if (!response.ok) {
@@ -156,7 +157,10 @@ export async function searchIGDB(query: string): Promise<MediaItem[]> {
             imageUrl: game.cover ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null,
             category: 'game' as const,
             categoryLabel: 'Játék',
-            year: game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear().toString() : undefined,
+            year: game.first_release_date
+                ? new Date(game.first_release_date * 1000).getFullYear().toString()
+                : undefined,
+            description: game.summary,
         }));
     } catch (error) {
         console.error('IGDB search error:', error);

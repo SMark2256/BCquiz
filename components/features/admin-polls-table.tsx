@@ -177,37 +177,36 @@ export function AdminPollsTable() {
                     </Card>
                 ) : (
                     polls.map((poll) => (
-                        <Card key={ poll.id } className="overflow-hidden">
+                        <Card key={ poll.id } className="relative overflow-hidden h-30 sm:h-34">
                             <CardContent className="py-2 px-4">
-                                <div className="flex items-start gap-3 relative">
-                                    <div className="flex flex-col flex-1 gap-3">
-                                        <div className="flex items-start justify-between gap-2">
+                                <div className="flex flex-col flex-1">
+                                    <div className="flex flex-col flex-1 gap-4">
+                                        <div className="flex items-start justify-between">
                                             <div className="min-w-0 flex-1 max-w-5/6">
                                                 <p className="flex-wrap font-medium text-base">{ poll.title }</p>
                                                 { poll.description && (
-                                                    <p className="flex-wrap text-sm text-muted-foreground">{ poll.description }</p>
+                                                    <p className="flex-nowrap text-sm text-muted-foreground truncate">{ poll.description }</p>
                                                 ) }
                                             </div>
                                         </div>
-                                        <div
-                                            className="flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base">
+                                    </div>
+
+                                    <div className="absolute flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base bottom-3 left-3">
                                             <span className="flex items-center gap-1">
                                                 <CalendarIcon className="size-4"/>
                                                 { format(poll.createdAt, 'yyyy. MMM dd.', { locale: hu }) }
                                             </span>
-                                            <span className="flex items-center gap-1">
+                                        <span className="flex items-center gap-1">
                                                 <Vote className="size-4"/>
-                                                { Object.keys(poll.options).length } opció
+                                            { Object.keys(poll.options).length } opció
                                             </span>
-                                            <span className="flex items-center gap-1">
+                                        <span className="flex items-center gap-1">
                                                 <span
                                                     className="font-semibold text-foreground">{ getTotalVotes(poll) }
                                                 </span> szavazat
                                             </span>
-                                        </div>
                                     </div>
-
-                                    <div className="absolute -top-2 right-0">
+                                    <div className="absolute top-3 right-3">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger
                                                 className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -235,7 +234,7 @@ export function AdminPollsTable() {
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
-                                    <div className="absolute bottom-0 right-0">
+                                    <div className="absolute bottom-3 right-3">
                                         <Badge variant={ poll.isActive ? 'default' : 'secondary' }>
                                             { poll.isActive ? 'Aktív' : 'Inaktív' }
                                         </Badge>

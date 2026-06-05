@@ -102,34 +102,33 @@ export function AdminQuizTable() {
           </Card>
         ) : (
           quizzes.map((quiz) => (
-            <Card key={quiz.id} className="overflow-hidden">
+            <Card key={quiz.id} className="relative overflow-hidden h-30 sm:h-34">
               <CardContent className="py-2 px-4">
-                <div className="flex items-start gap-3 relative">
+                <div className="flex items-start gap-3">
                   {/* Quiz Info */}
-                  <div className="flex flex-col flex-1 gap-3">
-                    <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-col flex-1 gap-6">
+                    <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1 max-w-5/6">
                         <p className="flex-wrap font-medium text-base">{quiz.title}</p>
                         {quiz.titleHu && (
-                          <p className="flex-wrap text-sm text-muted-foreground">{quiz.titleHu}</p>
+                          <p className="flex-nowrap text-sm text-muted-foreground truncate">{quiz.titleHu}</p>
                         )}
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="size-4" />
-                        {format(quiz.date, 'MMM dd.', { locale: hu })}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="size-4" />
-                        {quiz.time}
-                      </span>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="absolute -top-2 right-0">
+                  <div className="flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base absolute bottom-3 left-3">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="size-4" />
+                        {format(quiz.date, 'MMM dd.', { locale: hu })}
+                      </span>
+                    <span className="flex items-center gap-1">
+                        <Clock className="size-4" />
+                      {quiz.time}
+                      </span>
+                  </div>
+                  <div className="absolute top-3 right-3">
                     <DropdownMenu>
                       <DropdownMenuTrigger
                           className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -154,7 +153,7 @@ export function AdminQuizTable() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <div className="absolute bottom-0 right-0">
+                  <div className="absolute bottom-3 right-3">
                     <Badge variant={quiz.isActive ? 'default' : 'secondary'}>
                       {quiz.isActive ? 'Aktív' : 'Inaktív'}
                     </Badge>
