@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 
 let accessToken: string | null = null;
 let tokenExpiry: number = 0;
+const responseCache = new Map<string, { data: any; expiry: number }>();
+const CACHE_DURATION = 1000 * 60 * 60; // 1 óra (miliszekundumban)
+
 
 async function getTwitchToken() {
     // Ellenőrizzük, van-e érvényes token
@@ -43,6 +46,14 @@ export async function POST(request: Request) {
     const startTime = Date.now();
     try {
         const body = await request.text();
+
+        // 1. ELŐSZÖR ellenőrizzük a cache-t, hogy megspóroljuk a hívást
+        const cached = responseCache.get(body);
+        if (cached && Date.now() < cached.expiry) {
+            console.log('[IGDB Proxy] Válasz kiszolgálása memóriából (Cache hit)');
+            return NextResponse.json(cached.data);
+        }
+
         console.log('[IGDB Proxy] Beérkező kérés body:', body);
 
         const token = await getTwitchToken();
@@ -69,8 +80,15 @@ export async function POST(request: Request) {
             );
         }
 
+        // 2. Deklaráljuk és beolvassuk az adatokat
         const data = await response.json();
         console.log(`[IGDB Proxy] Sikeres válasz (${duration}ms). Találatok száma:`, Array.isArray(data) ? data.length : 'N/A');
+
+        // 3. UTÁNA mentjük el a cache-be
+        responseCache.set(body, {
+            data: data,
+            expiry: Date.now() + CACHE_DURATION
+        });
 
         return NextResponse.json(data);
     } catch (error: any) {

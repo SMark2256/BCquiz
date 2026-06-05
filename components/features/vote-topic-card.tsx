@@ -74,7 +74,7 @@ export function VoteTopicCard({ topic, onVote, hasVoted, hasVotedAny }: VoteTopi
                             className={ `object-cover transition-transform duration-300 ${ !hasVotedAny && 'group-hover:scale-105' } ` }
                             sizes="(max-width: 768px) 80px, 96px"
                             crossOrigin="anonymous"
-                            onLoadingComplete={() => setImageLoaded(true)}
+                            onLoad={ () => setImageLoaded(true) }
                         />
                     ) : (
                         <div

@@ -84,7 +84,6 @@ export function AdminPollsTable() {
         const result = await updatePoll(editingPoll.id, data);
         if (result.success) {
             triggerStorageRefresh();
-            fetchPolls();
             setEditingPoll(null);
         }
         return result;

@@ -40,15 +40,14 @@ export function AdminQuizTable() {
 
   const handleDelete = async () => {
     if (!deletingQuiz) return;
-    
+
     setIsDeleting(true);
     const result = await deleteQuiz(deletingQuiz.id);
     setIsDeleting(false);
-    
+
     if (result.success) {
-      triggerStorageRefresh();
       setDeletingQuiz(null);
-      refetch();
+      // A useQuizzes hook a háttérben már megkapta a frissítést a Firebase-től.
     }
   };
 
@@ -178,7 +177,6 @@ export function AdminQuizTable() {
         onSuccess={() => {
           setIsCreateOpen(false);
           setEditingQuiz(null);
-          refetch();
         }}
       />
 

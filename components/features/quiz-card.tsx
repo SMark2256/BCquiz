@@ -48,7 +48,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
                                     className="object-cover"
                                     sizes="(max-width: 768px) 96px, 112px"
                                     crossOrigin="anonymous"
-                                    onLoadingComplete={ () => setImageLoaded(true) }
+                                    onLoad={ () => setImageLoaded(true) }
                                 />
                             </div>
                         ) : (

@@ -19,6 +19,7 @@ export default function Home() {
                             width={385}
                             height={336}
                             sizes="(max-width: 768px) 100vw, 385px"
+                            style={{ width: 'auto' }}
                             className="header-logo h-48 sm:h-56"
                             priority
                         />

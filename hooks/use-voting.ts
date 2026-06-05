@@ -94,38 +94,25 @@ export function useVoting() {
     }
   }, [fetchTopics]);
 
-  const vote = async (topicId: string): Promise<{ success: boolean; error?: string }> => {
-    // Check if user has already voted
-    if (voteRecord) {
-      return { success: false, error: 'Már leadtad a szavazatod. Nem lehet módosítani.' };
-    }
+  const vote = async (topicId: string) => {
+    // 1. Mentjük az előző állapotot hiba esetére
+    const previousTopics = [...topics];
+
+    // 2. Optimista frissítés: azonnal módosítjuk a UI-t
+    setTopics(prev => prev.map(topic =>
+        topic.id === topicId ? { ...topic, votes: topic.votes + 1 } : topic
+    ).sort((a, b) => b.votes - a.votes));
 
     const result = await voteForTopic(topicId);
-    
-    if (result.success) {
-      // Update local state optimistically
-      setTopics(prev => 
-        prev.map(topic => 
-          topic.id === topicId 
-            ? { ...topic, votes: topic.votes + 1 }
-            : topic
-        ).sort((a, b) => b.votes - a.votes)
-      );
-      
-      // Create permanent vote record
-      const newRecord: VoteRecord = {
-        topicId,
-        timestamp: Date.now(),
-        fingerprint,
-      };
-      
-      setVoteRecord(newRecord);
-      
-      // Save to localStorage with fingerprint for verification
-      localStorage.setItem(VOTE_STORAGE_KEY, JSON.stringify(newRecord));
+
+    if (!result.success) {
+      // 3. Rollback: ha a szerver hibát dob, visszaállítjuk az eredeti adatokat
+      setTopics(previousTopics);
+      setError(result.error || 'Hiba a szavazat leadásakor');
+    } else {
+      // 4. SWR frissítés: háttérben lekérjük a legfrissebb összesített állást
+      fetchTopics();
     }
-    
-    return result;
   };
 
   const hasVoted = (topicId: string) => voteRecord?.topicId === topicId;

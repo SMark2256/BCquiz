@@ -68,7 +68,8 @@ export async function searchTMDb(query: string): Promise<MediaItem[]> {
 
     try {
         const response = await fetch(
-            `https://api.themoviedb.org/3/search/multi?api_key=${ TMDB_API_KEY }&query=${ encodeURIComponent(query) }&language=hu-HU&page=1`
+            `https://api.themoviedb.org/3/search/multi?api_key=${ TMDB_API_KEY }&query=${ encodeURIComponent(query) }&language=hu-HU&page=1`,
+            { next: { revalidate: 86400 } }
         );
 
         if (!response.ok) {
@@ -102,7 +103,8 @@ export async function searchGoogleBooks(query: string): Promise<MediaItem[]> {
 
     try {
         const response = await fetch(
-            `https://www.googleapis.com/books/v1/volumes?q=${ encodeURIComponent(query) }&key=${ GOOGLE_BOOKS_API_KEY }&maxResults=10&langRestrict=hu`
+            `https://www.googleapis.com/books/v1/volumes?q=${ encodeURIComponent(query) }&key=${ GOOGLE_BOOKS_API_KEY }&maxResults=10&langRestrict=hu`,
+            { next: { revalidate: 86400 } }
         );
 
         if (!response.ok) {
@@ -134,14 +136,14 @@ export async function searchIGDB(query: string): Promise<MediaItem[]> {
     if (!query.trim()) return [];
 
     try {
-        const queryBody = `fields name, cover.url, first_release_date, summary; search "${query.replace(/"/g, '\\"')}"; limit 10;`;
+        const queryBody = `fields name, cover.url, first_release_date, summary; search "${ query.replace(/"/g, '\\"') }"; limit 10;`;
 
         console.log('Frontend küldött lekérdezés:', queryBody);
 
         const response = await fetch('/api/igdb', {
-            method: 'POST',
-            body: queryBody,
-        });
+                method: 'POST',
+                body: queryBody,
+            });
 
         if (!response.ok) {
             console.error('IGDB API hiba:', response.status);
@@ -151,10 +153,10 @@ export async function searchIGDB(query: string): Promise<MediaItem[]> {
         const games: IGDBGame[] = await response.json();
 
         return games.map((game) => ({
-            id: `igdb-${game.id}`,
+            id: `igdb-${ game.id }`,
             title: game.name,
             originalTitle: game.name,
-            imageUrl: game.cover ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : null,
+            imageUrl: game.cover ? `https:${ game.cover.url.replace('t_thumb', 't_cover_big') }` : null,
             category: 'game' as const,
             categoryLabel: 'Játék',
             year: game.first_release_date

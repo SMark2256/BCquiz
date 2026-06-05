@@ -30,7 +30,7 @@ function notifyStorageChange() {
   storageListeners.forEach(listener => listener());
 }
 
-function subscribeToStorage(callback: () => void) {
+export function subscribeToStorage(callback: () => void) {
   storageListeners.add(callback);
   return () => storageListeners.delete(callback);
 }
