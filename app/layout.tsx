@@ -34,6 +34,9 @@ export default function RootLayout({
         >
             <Head>
                 <link rel="preconnect" href="https://vercel.live"/>
+                <link rel="preconnect" href="https://image.tmdb.org" />
+                <link rel="preconnect" href="https://api.igdb.com" />
+                <link rel="dns-prefetch" href="https://www.googleapis.com" />
             </Head>
             <body className="min-h-full flex flex-col font-sans relative"
                   suppressHydrationWarning>
