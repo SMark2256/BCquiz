@@ -31,6 +31,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
                                 alt={ quiz.title }
                                 fill
                                 className="object-cover"
+                                sizes="(max-width: 768px) 96px, 112px"
                                 crossOrigin="anonymous"
                             />
                         </div>

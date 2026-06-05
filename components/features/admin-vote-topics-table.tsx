@@ -143,6 +143,7 @@ export function AdminVoteTopicsTable() {
                           alt={topic.title}
                           fill
                           className="object-cover"
+                          sizes="48px"
                         />
                       </div>
                     ) : (

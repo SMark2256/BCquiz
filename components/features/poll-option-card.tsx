@@ -75,6 +75,7 @@ export function PollOptionCard({
               alt={option.title}
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 56px, 64px"
             />
           </div>
         ) : (

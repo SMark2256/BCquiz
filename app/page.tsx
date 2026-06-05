@@ -18,7 +18,8 @@ export default function Home() {
                             alt="BC Quiz Logo"
                             width={ 200 }
                             height={ 200 }
-                            className="header-logo h-[12rem] sm:h-[14rem]"
+                            className="header-logo h-48 sm:h-56"
+                            style={{  width: 'auto' }}
                             priority
                         />
                     </div>
@@ -72,9 +73,8 @@ export default function Home() {
                             </MythicText>
                         </div>
                         <div className="h-px bg-background/20"/>
-                        <div className="flex flex-col w-full text-xs sm:text-sm">
+                        <div className="flex flex-col w-full text-xs sm:text-sm gap-1">
                             <div className="flex items-center justify-center gap-4 h-14">
-
                                 <MythicIcon>
                                     <Image
                                         src="/glass_svg.svg"
@@ -82,6 +82,7 @@ export default function Home() {
                                         width={ 80 }
                                         height={ 80 }
                                         className="object-contain max-h-20 p-2"
+                                        style={{ height: 'auto' }}
                                     />
                                 </MythicIcon>
                                 <div className="flex flex-1">
@@ -98,6 +99,7 @@ export default function Home() {
                                         width={ 80 }
                                         height={ 80 }
                                         className="object-contain p-2"
+                                        style={{ height: 'auto' }}
                                     />
                                 </MythicIcon>
                                 <div className="flex flex-1">
@@ -113,7 +115,7 @@ export default function Home() {
                                         alt="question icon"
                                         width={ 80 }
                                         height={ 80 }
-                                        className="object-contain"
+                                        className="w-20 h-auto object-contain"
                                     />
                                 </MythicIcon>
                                 <div className="flex flex-1">
