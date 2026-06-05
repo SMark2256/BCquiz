@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,13 +31,14 @@ export default function RootLayout({
             className={ `${ geistSans.variable } ${ geistMono.variable } h-full antialiased` }
             suppressHydrationWarning
         >
-        <SpeedInsights/>
-        <body className="min-h-full flex flex-col font-sans relative"
-              suppressHydrationWarning>
-        <TooltipProvider>
-            <main className="flex-1 relative z-10">{ children }</main>
-        </TooltipProvider>
-        </body>
+            <body className="min-h-full flex flex-col font-sans relative"
+                  suppressHydrationWarning>
+                <TooltipProvider>
+                    <main className="flex-1 relative z-10">{ children }</main>
+                </TooltipProvider>
+                <Analytics/>
+                <SpeedInsights/>
+            </body>
         </html>
     );
 }

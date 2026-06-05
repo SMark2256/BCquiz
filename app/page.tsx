@@ -5,6 +5,7 @@ import { Divider } from "@/components/ui/divider";
 import MythicText from "@/components/ui/mythic-text";
 import MythicIcon from "@/components/ui/mythic-icon";
 
+
 export default function Home() {
     return (
         <div className="min-h-screen bg-transparent">
