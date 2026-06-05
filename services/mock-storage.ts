@@ -1,6 +1,18 @@
 ﻿// LocalStorage-based persistence for development/testing without Firebase
 import type { Quiz, QuizFormData, VoteTopic, VoteTopicFormData, Poll, PollFormData, PollOption, ApiResponse } from '@/types';
 
+// Create a simple event emitter for storage changes
+const storageListeners = new Set<() => void>();
+
+export function notifyStorageChange() {
+  storageListeners.forEach(listener => listener());
+}
+
+export function subscribeToStorage(callback: () => void) {
+  storageListeners.add(callback);
+  return () => storageListeners.delete(callback);
+}
+
 const STORAGE_KEYS = {
   QUIZZES: 'bcquiz_quizzes',
   VOTE_TOPICS: 'bcquiz_vote_topics',
@@ -31,7 +43,6 @@ function initializeDefaultData(): void {
   if (initialized) return;
 
   const now = new Date();
-  // Empty array - quizzes will be added manually
   const defaultQuizzes: Quiz[] = [
     {
       "title": "The Boys",
@@ -133,23 +144,26 @@ function parsePollDates(poll: Poll): Poll {
 export function getLocalQuizzes(): Quiz[] {
   const storage = getStorage();
   if (!storage) return [];
-  
+
   initializeDefaultData();
-  
+
   const data = storage.getItem(STORAGE_KEYS.QUIZZES);
   if (!data) return [];
-  
+
   try {
     const quizzes: Quiz[] = JSON.parse(data);
-    return quizzes.map(parseQuizDates).sort((a, b) => a.date.getTime() - b.date.getTime());
-  } catch {
+    return quizzes.map(parseQuizDates).sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  } catch (error) {
+    console.error('Error parsing local quizzes:', error);
     return [];
   }
 }
 
 export function getLocalUpcomingQuizzes(): Quiz[] {
-  const now = new Date(-1);
-  return getLocalQuizzes().filter(q => q.isActive && q.date >= now);
+  const now = new Date();
+  return getLocalQuizzes().filter(q => new Date(q.date) >= now);
 }
 
 export function getLocalQuiz(id: string): Quiz | null {
@@ -166,15 +180,17 @@ export function createLocalQuiz(data: QuizFormData): ApiResponse<Quiz> {
   try {
     const quizzes = getLocalQuizzes();
     const now = new Date();
+    
     const newQuiz: Quiz = {
-      ...data,
       id: `mock-${Date.now()}`,
+      ...data,
       createdAt: now,
       updatedAt: now,
     };
     
     quizzes.push(newQuiz);
     storage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(quizzes));
+    notifyStorageChange();
     
     return { success: true, data: newQuiz };
   } catch (error) {
@@ -205,6 +221,7 @@ export function updateLocalQuiz(id: string, data: Partial<QuizFormData>): ApiRes
     
     quizzes[index] = updatedQuiz;
     storage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(quizzes));
+    notifyStorageChange();
     
     return { success: true, data: updatedQuiz };
   } catch (error) {
@@ -228,6 +245,8 @@ export function deleteLocalQuiz(id: string): ApiResponse<void> {
     }
     
     storage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(filtered));
+    notifyStorageChange();
+    
     return { success: true };
   } catch (error) {
     console.error('Error deleting local quiz:', error);
@@ -240,16 +259,17 @@ export function deleteLocalQuiz(id: string): ApiResponse<void> {
 export function getLocalVoteTopics(): VoteTopic[] {
   const storage = getStorage();
   if (!storage) return [];
-  
+
   initializeDefaultData();
-  
+
   const data = storage.getItem(STORAGE_KEYS.VOTE_TOPICS);
   if (!data) return [];
-  
+
   try {
     const topics: VoteTopic[] = JSON.parse(data);
     return topics.map(parseVoteTopicDates).sort((a, b) => b.votes - a.votes);
-  } catch {
+  } catch (error) {
+    console.error('Error parsing local vote topics:', error);
     return [];
   }
 }
@@ -267,20 +287,23 @@ export function createLocalVoteTopic(data: VoteTopicFormData): ApiResponse<VoteT
 
   try {
     const topics = getLocalVoteTopics();
+    const now = new Date();
+    
     const newTopic: VoteTopic = {
-      ...data,
       id: `vote-${Date.now()}`,
+      ...data,
       votes: 0,
-      createdAt: new Date(),
+      createdAt: now,
     };
     
     topics.push(newTopic);
     storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(topics));
+    notifyStorageChange();
     
     return { success: true, data: newTopic };
   } catch (error) {
     console.error('Error creating local vote topic:', error);
-    return { success: false, error: 'Hiba történt a szavazási téma létrehozásakor' };
+    return { success: false, error: 'Hiba történt a téma létrehozásakor' };
   }
 }
 
@@ -295,7 +318,7 @@ export function updateLocalVoteTopic(id: string, data: Partial<VoteTopicFormData
     const index = topics.findIndex(t => t.id === id);
     
     if (index === -1) {
-      return { success: false, error: 'Szavazási téma nem található' };
+      return { success: false, error: 'Téma nem található' };
     }
     
     const updatedTopic: VoteTopic = {
@@ -305,11 +328,12 @@ export function updateLocalVoteTopic(id: string, data: Partial<VoteTopicFormData
     
     topics[index] = updatedTopic;
     storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(topics));
+    notifyStorageChange();
     
     return { success: true, data: updatedTopic };
   } catch (error) {
     console.error('Error updating local vote topic:', error);
-    return { success: false, error: 'Hiba történt a szavazási téma frissítésekor' };
+    return { success: false, error: 'Hiba történt a téma frissítésekor' };
   }
 }
 
@@ -324,14 +348,16 @@ export function deleteLocalVoteTopic(id: string): ApiResponse<void> {
     const filtered = topics.filter(t => t.id !== id);
     
     if (filtered.length === topics.length) {
-      return { success: false, error: 'Szavazási téma nem található' };
+      return { success: false, error: 'Téma nem található' };
     }
     
     storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(filtered));
+    notifyStorageChange();
+    
     return { success: true };
   } catch (error) {
     console.error('Error deleting local vote topic:', error);
-    return { success: false, error: 'Hiba történt a szavazási téma törlésekor' };
+    return { success: false, error: 'Hiba történt a téma törlésekor' };
   }
 }
 
@@ -346,28 +372,31 @@ export function incrementLocalVote(topicId: string): ApiResponse<VoteTopic> {
     const index = topics.findIndex(t => t.id === topicId);
     
     if (index === -1) {
-      return { success: false, error: 'Szavazási téma nem található' };
+      return { success: false, error: 'Téma nem található' };
     }
     
     topics[index].votes += 1;
     storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(topics));
+    notifyStorageChange();
     
     return { success: true, data: topics[index] };
   } catch (error) {
-    console.error('Error incrementing vote:', error);
+    console.error('Error incrementing local vote:', error);
     return { success: false, error: 'Hiba történt a szavazat leadásakor' };
   }
 }
 
-// Reset all local data (useful for testing)
 export function resetLocalData(): void {
   const storage = getStorage();
   if (!storage) return;
   
+  storage.removeItem(STORAGE_KEYS.INITIALIZED);
   storage.removeItem(STORAGE_KEYS.QUIZZES);
   storage.removeItem(STORAGE_KEYS.VOTE_TOPICS);
-  storage.removeItem(STORAGE_KEYS.INITIALIZED);
+  storage.removeItem(STORAGE_KEYS.POLLS);
+  
   initializeDefaultData();
+  notifyStorageChange();
 }
 
 // Clear only quizzes (keep vote topics)
@@ -376,6 +405,19 @@ export function clearLocalQuizzes(): void {
   if (!storage) return;
   
   storage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify([]));
+  notifyStorageChange();
+}
+
+export function toggleLocalQuizActive(id: string): ApiResponse<Quiz> {
+  const quizzes = getLocalQuizzes();
+  const index = quizzes.findIndex(q => q.id === id);
+  if (index === -1) return { success: false, error: 'Kvíz nem található' };
+
+  const updatedQuiz = { ...quizzes[index], isActive: !quizzes[index].isActive, updatedAt: new Date() };
+  quizzes[index] = updatedQuiz;
+  getStorage()?.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(quizzes));
+  notifyStorageChange();
+  return { success: true, data: updatedQuiz };
 }
 
 // ============ POLL CRUD OPERATIONS ============
@@ -461,7 +503,7 @@ export function createLocalPoll(data: PollFormData): ApiResponse<Poll> {
     // Convert options array to map
     const optionsMap: Record<string, PollOption> = {};
     data.options.forEach((opt, index) => {
-      const optionId = opt.id || `opt-${Date.now()}-${index}`;
+      const optionId = opt.id || `opt-${index}`
       optionsMap[optionId] = {
         id: optionId,
         title: opt.title,
@@ -483,6 +525,7 @@ export function createLocalPoll(data: PollFormData): ApiResponse<Poll> {
     
     polls.push(newPoll);
     storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
+    notifyStorageChange();
     
     return { success: true, data: newPoll };
   } catch (error) {
@@ -506,13 +549,12 @@ export function updateLocalPoll(id: string, data: Partial<PollFormData>): ApiRes
     }
     
     const existingPoll = polls[index];
-    
-    // Convert options array to map if provided, preserving vote counts
     let optionsMap = existingPoll.options;
+    
     if (data.options) {
       optionsMap = {};
       data.options.forEach((opt, idx) => {
-        const optionId = opt.id || `opt-${Date.now()}-${idx}`;
+        const optionId = opt.id || `opt-${index}`
         // Preserve existing vote count if option exists
         const existingVotes = existingPoll.options[optionId]?.votes || 0;
         optionsMap[optionId] = {
@@ -536,6 +578,7 @@ export function updateLocalPoll(id: string, data: Partial<PollFormData>): ApiRes
     
     polls[index] = updatedPoll;
     storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
+    notifyStorageChange();
     
     return { success: true, data: updatedPoll };
   } catch (error) {
@@ -559,6 +602,8 @@ export function deleteLocalPoll(id: string): ApiResponse<void> {
     }
     
     storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(filtered));
+    notifyStorageChange();
+    
     return { success: true };
   } catch (error) {
     console.error('Error deleting local poll:', error);
@@ -590,6 +635,7 @@ export function voteLocalPollOption(pollId: string, optionId: string): ApiRespon
     poll.updatedAt = new Date();
     
     storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
+    notifyStorageChange();
     
     return { success: true, data: poll };
   } catch (error) {
@@ -621,6 +667,7 @@ export function resetLocalPollVotes(pollId: string): ApiResponse<Poll> {
     poll.updatedAt = new Date();
     
     storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
+    notifyStorageChange();
     
     return { success: true, data: poll };
   } catch (error) {

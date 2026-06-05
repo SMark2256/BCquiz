@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
 import {
@@ -20,20 +20,10 @@ import {
   voteLocalPollOption,
   resetLocalPollVotes,
   resetLocalData,
+  subscribeToStorage,
+  notifyStorageChange,
 } from '@/services/mock-storage';
 import type { Quiz, QuizFormData, VoteTopic, VoteTopicFormData, Poll, PollFormData, ApiResponse } from '@/types';
-
-// Create a simple event emitter for storage changes
-const storageListeners = new Set<() => void>();
-
-function notifyStorageChange() {
-  storageListeners.forEach(listener => listener());
-}
-
-export function subscribeToStorage(callback: () => void) {
-  storageListeners.add(callback);
-  return () => storageListeners.delete(callback);
-}
 
 // Get snapshot for useSyncExternalStore
 function getQuizzesSnapshot(): Quiz[] {

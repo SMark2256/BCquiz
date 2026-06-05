@@ -20,9 +20,9 @@ import {
     getLocalQuiz,
     createLocalQuiz,
     updateLocalQuiz,
-    deleteLocalQuiz
+    deleteLocalQuiz,
+    subscribeToStorage
 } from './mock-storage';
-import { subscribeToStorage } from '@/hooks/use-mock-data';
 import type { Quiz, QuizFormData, ApiResponse } from '@/types';
 
 const COLLECTION_NAME = 'quizzes';
@@ -233,18 +233,6 @@ export async function deleteQuiz(id: string): Promise<ApiResponse<void>> {
         return { success: false, error: 'Hiba a kvíz törlésekor' };
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Toggle quiz active status
 export async function toggleQuizActive(id: string): Promise<ApiResponse<Quiz>> {
