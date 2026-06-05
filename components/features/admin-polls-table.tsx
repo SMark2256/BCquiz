@@ -210,14 +210,9 @@ export function AdminPollsTable() {
                                     <div className="absolute -top-2 right-0">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger
-                                                className="inline-flex size-8 shrink-0 items-center justify-center">
-                                                <Button
-                                                    size='sm'
-                                                    variant={
-                                                        'outline'
-                                                    }>
-                                                    <MoreVertical className="size-4"/>
-                                                </Button>
+                                                className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                            >
+                                                <MoreVertical className="size-4"/>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem onClick={ () => handleEdit(poll) }>

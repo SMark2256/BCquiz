@@ -132,15 +132,9 @@ export function AdminQuizTable() {
                   <div className="absolute -top-2 right-0">
                     <DropdownMenu>
                       <DropdownMenuTrigger
-                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-input bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                       >
-                        <Button
-                            size='sm'
-                            variant={
-                              'outline'
-                            }>
                         <MoreVertical className="size-4" />
-                        </Button>
                         <span className="sr-only">Műveletek</span>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
