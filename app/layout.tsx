@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import Head from 'next/head';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,6 +32,9 @@ export default function RootLayout({
             className={ `${ geistSans.variable } ${ geistMono.variable } h-full antialiased` }
             suppressHydrationWarning
         >
+            <Head>
+                <link rel="preconnect" href="https://vercel.live"/>
+            </Head>
             <body className="min-h-full flex flex-col font-sans relative"
                   suppressHydrationWarning>
                 <TooltipProvider>

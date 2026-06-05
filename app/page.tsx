@@ -16,10 +16,10 @@ export default function Home() {
                         <Image
                             src="/BarCraft_logo_Corvin.png"
                             alt="BC Quiz Logo"
-                            width={ 200 }
-                            height={ 200 }
+                            width={385}
+                            height={336}
+                            sizes="(max-width: 768px) 100vw, 385px"
                             className="header-logo h-48 sm:h-56"
-                            style={{  width: 'auto' }}
                             priority
                         />
                     </div>
