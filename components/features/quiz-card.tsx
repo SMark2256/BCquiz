@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { QuizCardSkeleton } from './quiz-card-skeleton';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import type { Quiz } from '@/types';
@@ -13,8 +15,14 @@ export function QuizCard({ quiz }: QuizCardProps) {
     const day = format(quiz.date, 'dd');
     const month = format(quiz.date, 'MM');
 
+    const [imageLoaded, setImageLoaded] = useState(false);
+
     return (
-        <div className='relative overflow-hidden rounded-lg border-2 border-white/10 transition-all quiz-cards'>
+        <div className="relative">
+            {!imageLoaded && <QuizCardSkeleton />}
+
+        <div className={cn('relative overflow-hidden rounded-lg border-2 border-white/10 transition-all quiz-cards',
+            !imageLoaded ? "opacity-0" : "opacity-100 transition-opacity duration-300")}>
             {/*
         A kártya külső kerete p-[3px] paddinggel és border-y-2 szegéllyel,
         hogy meglegyen a vizuális távolság a szélektől.
@@ -33,13 +41,15 @@ export function QuizCard({ quiz }: QuizCardProps) {
                                 className="object-cover"
                                 sizes="(max-width: 768px) 96px, 112px"
                                 crossOrigin="anonymous"
+                                onLoadingComplete={() => setImageLoaded(true)}
                             />
                         </div>
                     ) : (
-                        <div className="flex size-full items-center justify-center">
-                              <span className="text-2xl font-black text-muted-foreground">
-                                { quiz.title.charAt(0) }
-                              </span>
+                        <div className="flex size-full items-center justify-center bg-muted/20"
+                             ref={() => !imageLoaded && setImageLoaded(true)}>
+                                  <span className="text-2xl font-black text-muted-foreground">
+                                    { quiz.title.charAt(0) }
+                                  </span>
                         </div>
                     ) }
                 </div>
@@ -84,6 +94,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     );
 }
