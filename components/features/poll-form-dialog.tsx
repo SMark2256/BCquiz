@@ -88,7 +88,7 @@ export function PollFormDialog({
 
   const handleAddOption = () => {
     if (options.length < MAX_OPTIONS) {
-      setOptions([...options, { id: generateOptionId(), title: '', description: '', imageUrl: '' }]);
+      setOptions([...options, { id: generateOptionId(), title: '', description: '', isActive: false, imageUrl: '' }]);
     }
   };
 
@@ -115,6 +115,7 @@ export function PollFormDialog({
     newOptions[index] = {
       ...newOptions[index],
       title: item.title,
+      isActive: newOptions[index].isActive,
       imageUrl: item.imageUrl || '',
     };
     setOptions(newOptions);
@@ -135,7 +136,7 @@ export function PollFormDialog({
     const data: PollFormData = {
       title,
       description: description || undefined,
-      isActive,
+      isActive: isActive || false,
       options: validOptions,
     };
 

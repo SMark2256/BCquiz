@@ -36,10 +36,12 @@ export function VoteTopicFormDialog({
   const [formData, setFormData] = useState<{
     title: string;
     description: string;
+    isActive: boolean;
     imageUrl: string;
   }>({
     title: topic?.title || '',
     description: topic?.description || '',
+    isActive: topic?.isActive || false,
     imageUrl: topic?.imageUrl || '',
   });
 
@@ -48,6 +50,8 @@ export function VoteTopicFormDialog({
     setFormData({
       ...formData,
       title: item.title,
+      description: item.description || formData.description,
+      isActive: formData.isActive,
       imageUrl: item.imageUrl || '',
     });
   };
@@ -59,6 +63,7 @@ export function VoteTopicFormDialog({
     const data: VoteTopicFormData = {
       title: formData.title,
       description: formData.description || undefined,
+      isActive: formData.isActive || false,
       imageUrl: formData.imageUrl || undefined,
     };
 
