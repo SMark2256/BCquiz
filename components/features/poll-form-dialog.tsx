@@ -115,7 +115,6 @@ export function PollFormDialog({
     newOptions[index] = {
       ...newOptions[index],
       title: item.title,
-      isActive: newOptions[index].isActive,
       imageUrl: item.imageUrl || '',
     };
     setOptions(newOptions);
