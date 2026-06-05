@@ -55,6 +55,7 @@ export interface VoteTopic {
   description?: string;
   imageUrl?: string;
   votes: number;
+  isActive: boolean;
   createdAt: Date;
 }
 

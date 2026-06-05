@@ -294,3 +294,24 @@ export async function togglePollActive(pollId: string): Promise<ApiResponse<Poll
   
   return updatePoll(pollId, { isActive: !poll.data.isActive });
 }
+
+export function subscribeToActivePolls(callback: (polls: Poll[]) => void, onError?: (error: any) => void) {
+  if (shouldUseMockStorage()) {
+    const getActive = () => getLocalPolls().filter(p => p.isActive);
+    callback(getActive());
+    return subscribeToStorage(() => callback(getActive()));
+  }
+
+  const q = query(
+      collection(firestore, COLLECTION_NAME),
+      where('isActive', '==', true),
+      orderBy('createdAt', 'desc')
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const polls = snapshot.docs.map(documentToPoll);
+    callback(polls);
+  }, (error) => {
+    if (onError) onError(error);
+  });
+}

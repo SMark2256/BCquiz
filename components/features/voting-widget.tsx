@@ -42,7 +42,7 @@ export function VotingWidget() {
             <div className="p-3 sm:p-4">
                 { loading ? (
                     <div className="flex flex-col gap-3">
-                        { [ ...Array(4) ].map((_, i) => (
+                        { [ ...Array(2) ].map((_, i) => (
                             <div key={ i }
                                  className="relative overflow-hidden rounded-lg border-2 border-foreground bg-gray-800/50 transition-all">
                                 <div className="relative flex z-50 h-24 items-stretch sm:h-28">
@@ -65,8 +65,8 @@ export function VotingWidget() {
                     </Alert>
                 ) : topics.length === 0 ? (
                     <div
-                        className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 text-center sm:p-8">
-                        <p className="text-sm text-muted-foreground sm:text-base">
+                        className="rounded-lg border-2 border-dashed border-muted-foreground/75 p-6 text-center sm:p-8">
+                        <p className="text-sm text-muted sm:text-base">
                             Jelenleg nincs elérhető téma szavazásra.
                         </p>
                     </div>

@@ -45,12 +45,14 @@ function documentToVoteTopic(doc: { id: string; data: () => Record<string, unkno
 // Get all vote topics
 export async function getVoteTopics(): Promise<ApiResponse<VoteTopic[]>> {
   if (shouldUseMockStorage()) {
-    return { success: true, data: getLocalVoteTopics() };
+    const activeTopics = getLocalVoteTopics().filter(t => t.isActive);
+    return { success: true, data: activeTopics };
   }
 
   try {
     const q = query(
       collection(firestore, COLLECTION_NAME),
+        where('isActive', '==', true),
       orderBy('votes', 'desc')
     );
     const snapshot = await getDocs(q);

@@ -35,8 +35,9 @@ function shouldUseMockStorage(): boolean {
 export function subscribeToUpcomingQuizzes(callback: (quizzes: Quiz[]) => void, onError?: (error: any) => void) {
     if (shouldUseMockStorage()) {
         // Mock mód esetén a meglévő eseménykezelőt használjuk
-        callback(getLocalUpcomingQuizzes());
-        return subscribeToStorage(() => callback(getLocalUpcomingQuizzes()));
+        const getActiveUpcoming = () => getLocalUpcomingQuizzes().filter(q => q.isActive);
+        callback(getActiveUpcoming());
+        return subscribeToStorage(() => callback(getActiveUpcoming()));
     }
 
     const now = new Date();
