@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { getVoteTopics, voteForTopic } from '@/services/vote-service';
@@ -94,7 +94,7 @@ export function useVoting() {
     }
   }, [fetchTopics]);
 
-  const vote = async (topicId: string) => {
+  const vote = async (topicId: string): Promise<{ success: boolean; error?: string }> => {
     // 1. Mentjük az előző állapotot hiba esetére
     const previousTopics = [...topics];
 
@@ -109,9 +109,11 @@ export function useVoting() {
       // 3. Rollback: ha a szerver hibát dob, visszaállítjuk az eredeti adatokat
       setTopics(previousTopics);
       setError(result.error || 'Hiba a szavazat leadásakor');
+      return { success: false, error: result.error || 'Hiba a szavazat leadásakor' };
     } else {
       // 4. SWR frissítés: háttérben lekérjük a legfrissebb összesített állást
       fetchTopics();
+      return { success: true };
     }
   };
 

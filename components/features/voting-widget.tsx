@@ -72,7 +72,7 @@ export function VotingWidget() {
                     </div>
                 ) : (
                     <div className="flex flex-col gap-3 sm:gap-4">
-                        { topics.map((topic) => (
+                        { topics?.map((topic) => (
                             <VoteTopicCard
                                 key={ topic.id }
                                 topic={ topic }
