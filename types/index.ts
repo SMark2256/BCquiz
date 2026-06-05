@@ -15,82 +15,44 @@ export interface Quiz {
   updatedAt: Date;
 }
 
-export interface Event {
-  id: string;
-  title: string;
-  description?: string;
-  date: Date;
-  time: string;
-  imageUrl?: string;
-  location?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Poll Option within a Poll container
-export interface PollOption {
-  id: string;
-  title: string;
-  description?: string;
-  imageUrl?: string;
-  votes: number;
-}
-
-// Poll Container - contains 4-6 options as a nested map
-export interface Poll {
-  id: string;
-  title: string;
-  description?: string;
-  isActive: boolean;
-  options: Record<string, PollOption>; // Map of optionId -> PollOption
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Legacy VoteTopic for backwards compatibility (will be migrated)
+// A single voting option inside a VotingSession's votepool
 export interface VoteTopic {
   id: string;
   title: string;
   description?: string;
   imageUrl?: string;
   votes: number;
-  isActive: boolean;
-  createdAt: Date;
 }
 
-export interface Vote {
+// A created voting. Only ONE VotingSession can be active at a time.
+// title/description are optional extras for the admin UI; the public
+// widget uses its own fixed heading.
+export interface VotingSession {
   id: string;
-  pollId: string;
-  optionId: string;
-  userId?: string; // Optional: for authenticated voting
+  title?: string;
+  description?: string;
+  isActive: boolean;
+  votepool: VoteTopic[];
   createdAt: Date;
+  updatedAt: Date;
 }
 
 // Form types for creating/updating
 export type QuizFormData = Omit<Quiz, 'id' | 'createdAt' | 'updatedAt'>;
-export type EventFormData = Omit<Event, 'id' | 'createdAt' | 'updatedAt'>;
-export type VoteTopicFormData = Omit<VoteTopic, 'id' | 'votes' | 'createdAt'>;
 
-// Poll form data - options without votes (votes start at 0)
-export interface PollOptionFormData {
+// A votepool entry as edited in the admin form (votes start at 0)
+export interface VoteTopicFormData {
   id?: string; // Optional - generated if not provided
   title: string;
   description?: string;
   imageUrl?: string;
 }
 
-export interface PollFormData {
-  title: string;
+export interface VotingSessionFormData {
+  title?: string;
   description?: string;
   isActive: boolean;
-  options: PollOptionFormData[];
-}
-
-// Firebase document converters
-export interface FirestoreTimestamp {
-  seconds: number;
-  nanoseconds: number;
+  votepool: VoteTopicFormData[];
 }
 
 // API Response types

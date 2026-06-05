@@ -1,5 +1,5 @@
-﻿// LocalStorage-based persistence for development/testing without Firebase
-import type { Quiz, QuizFormData, VoteTopic, VoteTopicFormData, Poll, PollFormData, PollOption, ApiResponse } from '@/types';
+// LocalStorage-based persistence for development/testing without Firebase
+import type { Quiz, QuizFormData, VotingSession, VotingSessionFormData, VoteTopic, ApiResponse } from '@/types';
 
 // Create a simple event emitter for storage changes
 const storageListeners = new Set<() => void>();
@@ -15,8 +15,7 @@ export function subscribeToStorage(callback: () => void) {
 
 const STORAGE_KEYS = {
   QUIZZES: 'bcquiz_quizzes',
-  VOTE_TOPICS: 'bcquiz_vote_topics',
-  POLLS: 'bcquiz_polls',
+  VOTING_SESSIONS: 'bcquiz_voting_sessions',
   INITIALIZED: 'bcquiz_initialized',
 } as const;
 
@@ -42,7 +41,6 @@ function initializeDefaultData(): void {
   const initialized = storage.getItem(STORAGE_KEYS.INITIALIZED);
   if (initialized) return;
 
-  const now = new Date();
   const defaultQuizzes: Quiz[] = [
     {
       "title": "The Boys",
@@ -74,43 +72,8 @@ function initializeDefaultData(): void {
     }
   ];
 
-  const defaultVoteTopics: VoteTopic[] = [
-    {
-      id: 'vote-1',
-      title: 'Rick and Morty',
-      description: 'Sci-fi animációs sorozat',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/cvhNj9eoRBe5SxjCbQTkh05UP5K.jpg',
-      votes: 42,
-      createdAt: now,
-    },
-    {
-      id: 'vote-2',
-      title: 'The Witcher',
-      description: 'Fantasy sorozat',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvXPVvuiX22sP79K3Hmjz.jpg',
-      votes: 38,
-      createdAt: now,
-    },
-    {
-      id: 'vote-3',
-      title: 'Stranger Things',
-      description: 'Sci-fi horror sorozat',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',
-      votes: 35,
-      createdAt: now,
-    },
-    {
-      id: 'vote-4',
-      title: 'Avatar: The Last Airbender',
-      description: 'Animációs kalandsorozat',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/9RQhVb3r3mCMqYVhLoCu4EvuipP.jpg',
-      votes: 31,
-      createdAt: now,
-    },
-  ];
-
   storage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(defaultQuizzes));
-  storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(defaultVoteTopics));
+  storage.setItem(STORAGE_KEYS.VOTING_SESSIONS, JSON.stringify(getDefaultVotingSessions()));
   storage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
 }
 
@@ -124,18 +87,11 @@ function parseQuizDates(quiz: Quiz): Quiz {
   };
 }
 
-function parseVoteTopicDates(topic: VoteTopic): VoteTopic {
+function parseVotingSessionDates(session: VotingSession): VotingSession {
   return {
-    ...topic,
-    createdAt: new Date(topic.createdAt),
-  };
-}
-
-function parsePollDates(poll: Poll): Poll {
-  return {
-    ...poll,
-    createdAt: new Date(poll.createdAt),
-    updatedAt: new Date(poll.updatedAt),
+    ...session,
+    createdAt: new Date(session.createdAt),
+    updatedAt: new Date(session.updatedAt),
   };
 }
 
@@ -254,152 +210,19 @@ export function deleteLocalQuiz(id: string): ApiResponse<void> {
   }
 }
 
-// ============ VOTE TOPIC CRUD OPERATIONS ============
-
-export function getLocalVoteTopics(): VoteTopic[] {
-  const storage = getStorage();
-  if (!storage) return [];
-
-  initializeDefaultData();
-
-  const data = storage.getItem(STORAGE_KEYS.VOTE_TOPICS);
-  if (!data) return [];
-
-  try {
-    const topics: VoteTopic[] = JSON.parse(data);
-    return topics.map(parseVoteTopicDates).sort((a, b) => b.votes - a.votes);
-  } catch (error) {
-    console.error('Error parsing local vote topics:', error);
-    return [];
-  }
-}
-
-export function getLocalVoteTopic(id: string): VoteTopic | null {
-  const topics = getLocalVoteTopics();
-  return topics.find(t => t.id === id) || null;
-}
-
-export function createLocalVoteTopic(data: VoteTopicFormData): ApiResponse<VoteTopic> {
-  const storage = getStorage();
-  if (!storage) {
-    return { success: false, error: 'LocalStorage nem elérhető' };
-  }
-
-  try {
-    const topics = getLocalVoteTopics();
-    const now = new Date();
-    
-    const newTopic: VoteTopic = {
-      id: `vote-${Date.now()}`,
-      ...data,
-      votes: 0,
-      createdAt: now,
-    };
-    
-    topics.push(newTopic);
-    storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(topics));
-    notifyStorageChange();
-    
-    return { success: true, data: newTopic };
-  } catch (error) {
-    console.error('Error creating local vote topic:', error);
-    return { success: false, error: 'Hiba történt a téma létrehozásakor' };
-  }
-}
-
-export function updateLocalVoteTopic(id: string, data: Partial<VoteTopicFormData>): ApiResponse<VoteTopic> {
-  const storage = getStorage();
-  if (!storage) {
-    return { success: false, error: 'LocalStorage nem elérhető' };
-  }
-
-  try {
-    const topics = getLocalVoteTopics();
-    const index = topics.findIndex(t => t.id === id);
-    
-    if (index === -1) {
-      return { success: false, error: 'Téma nem található' };
-    }
-    
-    const updatedTopic: VoteTopic = {
-      ...topics[index],
-      ...data,
-    };
-    
-    topics[index] = updatedTopic;
-    storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(topics));
-    notifyStorageChange();
-    
-    return { success: true, data: updatedTopic };
-  } catch (error) {
-    console.error('Error updating local vote topic:', error);
-    return { success: false, error: 'Hiba történt a téma frissítésekor' };
-  }
-}
-
-export function deleteLocalVoteTopic(id: string): ApiResponse<void> {
-  const storage = getStorage();
-  if (!storage) {
-    return { success: false, error: 'LocalStorage nem elérhető' };
-  }
-
-  try {
-    const topics = getLocalVoteTopics();
-    const filtered = topics.filter(t => t.id !== id);
-    
-    if (filtered.length === topics.length) {
-      return { success: false, error: 'Téma nem található' };
-    }
-    
-    storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(filtered));
-    notifyStorageChange();
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error deleting local vote topic:', error);
-    return { success: false, error: 'Hiba történt a téma törlésekor' };
-  }
-}
-
-export function incrementLocalVote(topicId: string): ApiResponse<VoteTopic> {
-  const storage = getStorage();
-  if (!storage) {
-    return { success: false, error: 'LocalStorage nem elérhető' };
-  }
-
-  try {
-    const topics = getLocalVoteTopics();
-    const index = topics.findIndex(t => t.id === topicId);
-    
-    if (index === -1) {
-      return { success: false, error: 'Téma nem található' };
-    }
-    
-    topics[index].votes += 1;
-    storage.setItem(STORAGE_KEYS.VOTE_TOPICS, JSON.stringify(topics));
-    notifyStorageChange();
-    
-    return { success: true, data: topics[index] };
-  } catch (error) {
-    console.error('Error incrementing local vote:', error);
-    return { success: false, error: 'Hiba történt a szavazat leadásakor' };
-  }
-}
-
 export function resetLocalData(): void {
   const storage = getStorage();
   if (!storage) return;
   
   storage.removeItem(STORAGE_KEYS.INITIALIZED);
   storage.removeItem(STORAGE_KEYS.QUIZZES);
-  storage.removeItem(STORAGE_KEYS.VOTE_TOPICS);
-  storage.removeItem(STORAGE_KEYS.POLLS);
+  storage.removeItem(STORAGE_KEYS.VOTING_SESSIONS);
   
   initializeDefaultData();
   notifyStorageChange();
 }
 
-// Clear only quizzes (keep vote topics)
+// Clear only quizzes (keep voting sessions)
 export function clearLocalQuizzes(): void {
   const storage = getStorage();
   if (!storage) return;
@@ -420,259 +243,283 @@ export function toggleLocalQuizActive(id: string): ApiResponse<Quiz> {
   return { success: true, data: updatedQuiz };
 }
 
-// ============ POLL CRUD OPERATIONS ============
+// ============ VOTING SESSION CRUD OPERATIONS ============
 
-export function getLocalPolls(): Poll[] {
-  const storage = getStorage();
-  if (!storage) return [];
-  
-  initializeDefaultData();
-  
-  const data = storage.getItem(STORAGE_KEYS.POLLS);
-  if (!data) return getDefaultPolls();
-  
-  try {
-    const polls: Poll[] = JSON.parse(data);
-    return polls.map(parsePollDates).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-  } catch {
-    return getDefaultPolls();
-  }
-}
-
-function getDefaultPolls(): Poll[] {
+function getDefaultVotingSessions(): VotingSession[] {
   const now = new Date();
   return [
     {
-      id: 'poll-default-1',
+      id: 'session-default-1',
       title: 'Következő Kvízest Témája',
       description: 'Szavazz, hogy miről szóljon a következő kvízestünk!',
       isActive: true,
-      options: {
-        'opt-1': {
-          id: 'opt-1',
+      votepool: [
+        {
+          id: 'topic-1',
           title: 'Rick and Morty',
           description: 'Sci-fi animációs sorozat',
           imageUrl: 'https://image.tmdb.org/t/p/w500/cvhNj9eoRBe5SxjCbQTkh05UP5K.jpg',
           votes: 42,
         },
-        'opt-2': {
-          id: 'opt-2',
+        {
+          id: 'topic-2',
           title: 'The Witcher',
           description: 'Fantasy sorozat',
           imageUrl: 'https://image.tmdb.org/t/p/w500/cZ0d3rtvXPVvuiX22sP79K3Hmjz.jpg',
           votes: 38,
         },
-        'opt-3': {
-          id: 'opt-3',
+        {
+          id: 'topic-3',
           title: 'Stranger Things',
           description: 'Sci-fi horror sorozat',
           imageUrl: 'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',
           votes: 35,
         },
-        'opt-4': {
-          id: 'opt-4',
+        {
+          id: 'topic-4',
           title: 'Avatar: The Last Airbender',
           description: 'Animációs kalandsorozat',
           imageUrl: 'https://image.tmdb.org/t/p/w500/9RQhVb3r3mCMqYVhLoCu4EvuipP.jpg',
           votes: 31,
         },
-      },
+      ],
       createdAt: now,
       updatedAt: now,
     },
   ];
 }
 
-export function getLocalPoll(id: string): Poll | null {
-  const polls = getLocalPolls();
-  return polls.find(p => p.id === id) || null;
+// Build a votepool (with vote counts) from form data, preserving existing votes by id.
+function buildVotepool(
+  items: VotingSessionFormData['votepool'],
+  existing: VoteTopic[] = []
+): VoteTopic[] {
+  return items.map((item, index) => {
+    const id = item.id || `topic-${Date.now()}-${index}`;
+    const previous = existing.find(t => t.id === id);
+    return {
+      id,
+      title: item.title,
+      description: item.description,
+      imageUrl: item.imageUrl,
+      votes: previous?.votes ?? 0,
+    };
+  });
 }
 
-export function createLocalPoll(data: PollFormData): ApiResponse<Poll> {
+export function getLocalVotingSessions(): VotingSession[] {
+  const storage = getStorage();
+  if (!storage) return [];
+
+  initializeDefaultData();
+
+  const data = storage.getItem(STORAGE_KEYS.VOTING_SESSIONS);
+  if (!data) return getDefaultVotingSessions();
+
+  try {
+    const sessions: VotingSession[] = JSON.parse(data);
+    return sessions
+      .map(parseVotingSessionDates)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } catch {
+    return getDefaultVotingSessions();
+  }
+}
+
+export function getLocalVotingSession(id: string): VotingSession | null {
+  return getLocalVotingSessions().find(s => s.id === id) || null;
+}
+
+function persistSessions(sessions: VotingSession[]): void {
+  getStorage()?.setItem(STORAGE_KEYS.VOTING_SESSIONS, JSON.stringify(sessions));
+  notifyStorageChange();
+}
+
+export function createLocalVotingSession(data: VotingSessionFormData): ApiResponse<VotingSession> {
   const storage = getStorage();
   if (!storage) {
     return { success: false, error: 'LocalStorage nem elérhető' };
   }
 
   try {
-    const polls = getLocalPolls();
+    let sessions = getLocalVotingSessions();
     const now = new Date();
-    
-    // Convert options array to map
-    const optionsMap: Record<string, PollOption> = {};
-    data.options.forEach((opt, index) => {
-      const optionId = opt.id || `opt-${index}`
-      optionsMap[optionId] = {
-        id: optionId,
-        title: opt.title,
-        description: opt.description,
-        imageUrl: opt.imageUrl,
-        votes: 0,
-      };
-    });
-    
-    const newPoll: Poll = {
-      id: `poll-${Date.now()}`,
+
+    // Only one session can be active at a time.
+    if (data.isActive) {
+      sessions = sessions.map(s => ({ ...s, isActive: false }));
+    }
+
+    const newSession: VotingSession = {
+      id: `session-${Date.now()}`,
       title: data.title,
       description: data.description,
       isActive: data.isActive,
-      options: optionsMap,
+      votepool: buildVotepool(data.votepool),
       createdAt: now,
       updatedAt: now,
     };
-    
-    polls.push(newPoll);
-    storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
-    notifyStorageChange();
-    
-    return { success: true, data: newPoll };
+
+    sessions.push(newSession);
+    persistSessions(sessions);
+
+    return { success: true, data: newSession };
   } catch (error) {
-    console.error('Error creating local poll:', error);
+    console.error('Error creating local voting session:', error);
     return { success: false, error: 'Hiba történt a szavazás létrehozásakor' };
   }
 }
 
-export function updateLocalPoll(id: string, data: Partial<PollFormData>): ApiResponse<Poll> {
+export function updateLocalVotingSession(
+  id: string,
+  data: Partial<VotingSessionFormData>
+): ApiResponse<VotingSession> {
   const storage = getStorage();
   if (!storage) {
     return { success: false, error: 'LocalStorage nem elérhető' };
   }
 
   try {
-    const polls = getLocalPolls();
-    const index = polls.findIndex(p => p.id === id);
-    
+    const sessions = getLocalVotingSessions();
+    const index = sessions.findIndex(s => s.id === id);
+
     if (index === -1) {
       return { success: false, error: 'Szavazás nem található' };
     }
-    
-    const existingPoll = polls[index];
-    let optionsMap = existingPoll.options;
-    
-    if (data.options) {
-      optionsMap = {};
-      data.options.forEach((opt, idx) => {
-        const optionId = opt.id || `opt-${index}`
-        // Preserve existing vote count if option exists
-        const existingVotes = existingPoll.options[optionId]?.votes || 0;
-        optionsMap[optionId] = {
-          id: optionId,
-          title: opt.title,
-          description: opt.description,
-          imageUrl: opt.imageUrl,
-          votes: existingVotes,
-        };
+
+    const existing = sessions[index];
+    const willBeActive = data.isActive ?? existing.isActive;
+
+    // Enforce single active session: deactivate others when this one becomes active.
+    if (willBeActive) {
+      sessions.forEach((s, i) => {
+        if (i !== index) s.isActive = false;
       });
     }
-    
-    const updatedPoll: Poll = {
-      ...existingPoll,
-      title: data.title ?? existingPoll.title,
-      description: data.description ?? existingPoll.description,
-      isActive: data.isActive ?? existingPoll.isActive,
-      options: optionsMap,
+
+    const updated: VotingSession = {
+      ...existing,
+      title: data.title !== undefined ? data.title : existing.title,
+      description: data.description !== undefined ? data.description : existing.description,
+      isActive: willBeActive,
+      votepool: data.votepool ? buildVotepool(data.votepool, existing.votepool) : existing.votepool,
       updatedAt: new Date(),
     };
-    
-    polls[index] = updatedPoll;
-    storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
-    notifyStorageChange();
-    
-    return { success: true, data: updatedPoll };
+
+    sessions[index] = updated;
+    persistSessions(sessions);
+
+    return { success: true, data: updated };
   } catch (error) {
-    console.error('Error updating local poll:', error);
+    console.error('Error updating local voting session:', error);
     return { success: false, error: 'Hiba történt a szavazás frissítésekor' };
   }
 }
 
-export function deleteLocalPoll(id: string): ApiResponse<void> {
+export function deleteLocalVotingSession(id: string): ApiResponse<void> {
   const storage = getStorage();
   if (!storage) {
     return { success: false, error: 'LocalStorage nem elérhető' };
   }
 
   try {
-    const polls = getLocalPolls();
-    const filtered = polls.filter(p => p.id !== id);
-    
-    if (filtered.length === polls.length) {
+    const sessions = getLocalVotingSessions();
+    const filtered = sessions.filter(s => s.id !== id);
+
+    if (filtered.length === sessions.length) {
       return { success: false, error: 'Szavazás nem található' };
     }
-    
-    storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(filtered));
-    notifyStorageChange();
-    
+
+    persistSessions(filtered);
     return { success: true };
   } catch (error) {
-    console.error('Error deleting local poll:', error);
+    console.error('Error deleting local voting session:', error);
     return { success: false, error: 'Hiba történt a szavazás törlésekor' };
   }
 }
 
-export function voteLocalPollOption(pollId: string, optionId: string): ApiResponse<Poll> {
+// Activate one session and deactivate all others.
+export function setLocalActiveVotingSession(id: string): ApiResponse<VotingSession> {
+  const sessions = getLocalVotingSessions();
+  const target = sessions.find(s => s.id === id);
+  if (!target) {
+    return { success: false, error: 'Szavazás nem található' };
+  }
+
+  sessions.forEach(s => {
+    s.isActive = s.id === id;
+    s.updatedAt = new Date();
+  });
+  persistSessions(sessions);
+
+  return { success: true, data: sessions.find(s => s.id === id)! };
+}
+
+// Toggle a session's active state (turning on deactivates the others).
+export function toggleLocalVotingSessionActive(id: string): ApiResponse<VotingSession> {
+  const session = getLocalVotingSession(id);
+  if (!session) {
+    return { success: false, error: 'Szavazás nem található' };
+  }
+  return updateLocalVotingSession(id, { isActive: !session.isActive });
+}
+
+export function voteLocalVoteTopic(sessionId: string, topicId: string): ApiResponse<VotingSession> {
   const storage = getStorage();
   if (!storage) {
     return { success: false, error: 'LocalStorage nem elérhető' };
   }
 
   try {
-    const polls = getLocalPolls();
-    const index = polls.findIndex(p => p.id === pollId);
-    
+    const sessions = getLocalVotingSessions();
+    const index = sessions.findIndex(s => s.id === sessionId);
+
     if (index === -1) {
       return { success: false, error: 'Szavazás nem található' };
     }
-    
-    const poll = polls[index];
-    
-    if (!poll.options[optionId]) {
+
+    const session = sessions[index];
+    const topic = session.votepool.find(t => t.id === topicId);
+
+    if (!topic) {
       return { success: false, error: 'Opció nem található' };
     }
-    
-    poll.options[optionId].votes += 1;
-    poll.updatedAt = new Date();
-    
-    storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
-    notifyStorageChange();
-    
-    return { success: true, data: poll };
+
+    topic.votes += 1;
+    session.updatedAt = new Date();
+
+    persistSessions(sessions);
+    return { success: true, data: session };
   } catch (error) {
-    console.error('Error voting for poll option:', error);
+    console.error('Error voting for topic:', error);
     return { success: false, error: 'Hiba történt a szavazat leadásakor' };
   }
 }
 
-export function resetLocalPollVotes(pollId: string): ApiResponse<Poll> {
+export function resetLocalVotingSessionVotes(sessionId: string): ApiResponse<VotingSession> {
   const storage = getStorage();
   if (!storage) {
     return { success: false, error: 'LocalStorage nem elérhető' };
   }
 
   try {
-    const polls = getLocalPolls();
-    const index = polls.findIndex(p => p.id === pollId);
-    
+    const sessions = getLocalVotingSessions();
+    const index = sessions.findIndex(s => s.id === sessionId);
+
     if (index === -1) {
       return { success: false, error: 'Szavazás nem található' };
     }
-    
-    const poll = polls[index];
-    
-    // Reset all vote counts to 0
-    Object.keys(poll.options).forEach(optId => {
-      poll.options[optId].votes = 0;
+
+    const session = sessions[index];
+    session.votepool.forEach(topic => {
+      topic.votes = 0;
     });
-    poll.updatedAt = new Date();
-    
-    storage.setItem(STORAGE_KEYS.POLLS, JSON.stringify(polls));
-    notifyStorageChange();
-    
-    return { success: true, data: poll };
+    session.updatedAt = new Date();
+
+    persistSessions(sessions);
+    return { success: true, data: session };
   } catch (error) {
-    console.error('Error resetting poll votes:', error);
+    console.error('Error resetting votes:', error);
     return { success: false, error: 'Hiba történt a szavazatok nullázásakor' };
   }
 }
-
