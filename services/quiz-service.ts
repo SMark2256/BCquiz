@@ -1,4 +1,4 @@
-import {
+﻿import {
     collection,
     doc,
     getDocs,
@@ -32,7 +32,7 @@ function shouldUseMockStorage(): boolean {
     return isMockMode() || !isFirebaseConfigured();
 }
 
-export function subscribeToUpcomingQuizzes(callback: (quizzes: Quiz[]) => void) {
+export function subscribeToUpcomingQuizzes(callback: (quizzes: Quiz[]) => void, onError?: (error: any) => void) {
     if (shouldUseMockStorage()) {
         // Mock mód esetén a meglévő eseménykezelőt használjuk
         callback(getLocalUpcomingQuizzes());
@@ -53,10 +53,11 @@ export function subscribeToUpcomingQuizzes(callback: (quizzes: Quiz[]) => void) 
         callback(quizzes);
     }, (error) => {
         console.error('Real-time updates error:', error);
+        if (onError) onError(error);
     });
 }
 
-export function subscribeToQuizzes(callback: (quizzes: Quiz[]) => void) {
+export function subscribeToQuizzes(callback: (quizzes: Quiz[]) => void, onError?: (error: any) => void) {
     if (shouldUseMockStorage()) {
         callback(getLocalQuizzes());
         return subscribeToStorage(() => callback(getLocalQuizzes()));
@@ -75,6 +76,7 @@ export function subscribeToQuizzes(callback: (quizzes: Quiz[]) => void) {
         callback(quizzes);
     }, (error) => {
         console.error('Real-time updates error:', error);
+        if (onError) onError(error);
     });
 }
 
@@ -231,3 +233,15 @@ export async function deleteQuiz(id: string): Promise<ApiResponse<void>> {
         return { success: false, error: 'Hiba a kvíz törlésekor' };
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
