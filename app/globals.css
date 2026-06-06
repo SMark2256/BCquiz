@@ -126,6 +126,12 @@
   .bc-public-locked,
   .dark .bc-public-locked {
     color-scheme: light;
+    /*
+     * A body szülő örökli a téma `text-foreground` színét, ezért itt explicit
+     * újra beállítjuk a color-t a zárolt (light) tokenre. Enélkül a .dark
+     * öröklött sötét --foreground szivárogna be a publikus oldalra.
+     */
+    color: var(--foreground);
     --background: oklch(0.99 0 0);
     --foreground: oklch(0.18 0 0);
     --card: oklch(1 0 0);
