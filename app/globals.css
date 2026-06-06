@@ -116,6 +116,41 @@
     border-color: var(--border);
   }
 
+  /*
+   * Téma-független "zár" a publikus oldalra.
+   * A fő oldal mindig a light :root paletta fix értékeit használja, függetlenül
+   * attól, hogy a <html>-en ott van-e a .dark osztály (pl. admin téma váltás).
+   * Az értékek 1:1-ben megegyeznek a fenti :root tokenekkel, így vizuálisan
+   * semmi nem változik – csak immúnissá tesszük a dark/light váltásra.
+   */
+  .bc-public-locked,
+  .dark .bc-public-locked {
+    color-scheme: light;
+    --background: oklch(0.99 0 0);
+    --foreground: oklch(0.18 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.15 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.15 0 0);
+    --primary: oklch(0.25 0 0);
+    --primary-foreground: oklch(0.98 0 0);
+    --secondary: oklch(0.96 0 0);
+    --secondary-foreground: oklch(0.25 0 0);
+    --muted: oklch(0.96 0 0);
+    --muted-foreground: oklch(0.5 0 0);
+    --accent: oklch(0.96 0 0);
+    --accent-foreground: oklch(0.25 0 0);
+    --destructive: oklch(0.55 0.22 25);
+    --border: oklch(0.92 0 0);
+    --input: oklch(0.92 0 0);
+    --ring: oklch(0.25 0 0 / 0.1);
+    --chart-1: oklch(0.62 0.21 16);
+    --chart-2: oklch(0.72 0.16 55);
+    --chart-3: oklch(0.45 0 0);
+    --chart-4: oklch(0.68 0.13 30);
+    --chart-5: oklch(0.78 0.05 60);
+  }
+
   body {
     @apply text-foreground selection:bg-primary/10 selection:text-primary;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";

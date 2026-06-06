@@ -8,7 +8,7 @@ import MythicIcon from "@/components/ui/mythic-icon";
 
 export default function Home() {
     return (
-        <div className="min-h-screen bg-transparent">
+        <div className="bc-public-locked min-h-screen bg-transparent">
             {/* Hero Section */ }
             <header className="flex items-center justify-center bg-foreground/0 text-background pt-4 mt-4 sm:mt-8 h-40 sm:h-48">
                 <div className="mx-auto max-w-xl px-4 text-center">
