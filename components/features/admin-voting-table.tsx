@@ -168,7 +168,7 @@ export function AdminVotingTable() {
             </div>
 
             <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-semibold sm:text-lg">Szavazások Kezelése</h2>
+                <h2 className="text-base font-semibold sm:text-lg dark:text-muted-foreground">Szavazások Kezelése</h2>
                 <Button onClick={ () => setIsFormOpen(true) } size="sm">
                     <Plus data-icon="inline-start"/>
                     Új Szavazás

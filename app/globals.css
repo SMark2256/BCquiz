@@ -49,6 +49,7 @@
 }
 
 :root {
+  color-scheme: light;
   --bc-bg: #08070d;
   --bc-bg-2: #120b18;
   /* Világos mód: Finomabb szürkék és mélyebb kontraszt */
@@ -82,6 +83,7 @@
 
 .dark {
   /* Sötét mód: "Deep Night" paletta a tiszta fekete helyett */
+  color-scheme: dark; /* Natív vezérlők (pl. dátum/idő választó) sötét témája */
   --background: oklch(0.12 0 0);
   --foreground: oklch(0.40 0 0);
   --slate: oklch(0.12 0 0);

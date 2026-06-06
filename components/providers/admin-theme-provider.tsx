@@ -43,15 +43,17 @@ function readStoredTheme(): AdminTheme {
  * same theme.
  */
 export function AdminThemeProvider({ children }: { children: React.ReactNode }) {
-    // Always start from the default so server and first client paint agree
-    // (no hydration mismatch). The stored preference is applied right after
-    // mount in the layout effect below, before the browser paints.
-    const [ theme, setThemeState ] = useState<AdminTheme>(DEFAULT_THEME);
+    // Lazy-init from storage. The server always renders the default, but the
+    // blocking script in app/admin/layout.tsx has already applied the correct
+    // class to <html> before paint, and <html> has suppressHydrationWarning, so
+    // reading storage here keeps the provider in sync with what's on screen
+    // without any flash. Falls back to the default during SSR.
+    const [ theme, setThemeState ] = useState<AdminTheme>(readStoredTheme);
     const [ mounted, setMounted ] = useState(false);
 
-    // On mount, adopt the persisted preference (runs only on the client).
-    useLayoutEffect(() => {
-        setThemeState(readStoredTheme());
+    // Mark mounted so client-only consumers (e.g. the toggle icon/label) can
+    // safely reflect the real theme after hydration.
+    useEffect(() => {
         setMounted(true);
     }, []);
 

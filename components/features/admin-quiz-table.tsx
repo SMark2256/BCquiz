@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { format } from 'date-fns';
@@ -91,7 +91,7 @@ export function AdminQuizTable() {
     return (
         <div>
             <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-semibold sm:text-lg">Kvízek Kezelése</h2>
+                <h2 className="text-base font-semibold sm:text-lg dark:text-muted-foreground">Kvízek Kezelése</h2>
                 <Button onClick={ () => setIsCreateOpen(true) } size="sm" className="text-xs sm:text-sm">
                     <Plus data-icon="inline-start"/>
                     <span>Új Kvíz</span>

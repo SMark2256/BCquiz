@@ -50,7 +50,7 @@ function AdminContent() {
 
             <div className="mx-auto max-w-5xl px-3 py-4 sm:px-4 sm:py-8">
                 <div className="mb-4 sm:mb-8">
-                    <h2 className="text-xl font-bold tracking-tight sm:text-3xl">Kvízestek Kezelése</h2>
+                    <h2 className="text-xl font-bold tracking-tight sm:text-3xl dark:text-muted-foreground">Kvízestek Kezelése</h2>
                     <p className="text-sm text-muted-foreground sm:text-base">
                         Kvízek, események és szavazási témák kezelése.
                     </p>
@@ -67,7 +67,6 @@ function AdminContent() {
                   { !firebaseConfigured && <span className="hidden sm:inline"> A Firebase nincs konfigurálva.</span> }
               </span>
                             <Button
-                                variant="outline"
                                 size="sm"
                                 onClick={ resetData }
                                 className="w-fit shrink-0 text-md sm:text-xs sm:ml-4"
@@ -81,16 +80,16 @@ function AdminContent() {
                 ) }
 
                 <Tabs defaultValue="quizzes">
-                    <TabsList className="mb-4 w-full sm:mb-6 sm:w-auto">
+                    <TabsList className="mb-4 w-full sm:mb-6 sm:w-auto dark:bg-secondary/60">
                         <TabsTrigger
                             value="quizzes"
-                            className="flex flex-1 items-center justify-center gap-2 py-3 text-base sm:flex-initial sm:py-1.5"
+                            className="flex flex-1 items-center justify-center gap-2 py-3 text-base sm:flex-initial sm:py-1.5 dark:text-muted-foreground dark:hover:text-foreground dark:data-[active]:bg-secondary dark:data-[active]:text-secondary-foreground dark:data-[active]:border-border"
                         >
                             <CalendarDays className="size-5 sm:size-4"/>
                             <span>Kvízek</span>
                         </TabsTrigger>
                         <TabsTrigger value="voting"
-                                     className="flex flex-1 items-center gap-1.5 text-md sm:flex-initial sm:gap-2 sm:text-sm">
+                                     className="flex flex-1 items-center gap-1.5 text-md sm:flex-initial sm:gap-2 sm:text-sm dark:text-muted-foreground dark:hover:text-foreground dark:data-[active]:bg-secondary dark:data-[active]:text-secondary-foreground dark:data-[active]:border-border">
                             <Vote className="size-5 sm:size-4"/>
                             <span className="hidden xs:inline">Szavazási Témák</span>
                             <span className="xs:hidden">Szavazás</span>
