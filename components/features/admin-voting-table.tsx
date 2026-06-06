@@ -33,8 +33,10 @@ import {
     toggleVotingSessionActive,
 } from '@/services/voting-service';
 import { triggerStorageRefresh } from '@/hooks/use-mock-data';
+import { subscribeToStorage } from '@/services/mock-storage';
 import type { VotingSession, VotingSessionFormData } from '@/types';
 import { VotingSessionFormDialog } from './voting-session-form-dialog';
+import { ActiveVotingChart } from './active-voting-chart';
 import { Card, CardContent } from "@/components/ui/card";
 
 export function AdminVotingTable() {
@@ -47,8 +49,8 @@ export function AdminVotingTable() {
     const [ isDeleting, setIsDeleting ] = useState(false);
     const [ isResetting, setIsResetting ] = useState(false);
 
-    const fetchSessions = useCallback(async () => {
-        setLoading(true);
+    const fetchSessions = useCallback(async (options?: { silent?: boolean }) => {
+        if (!options?.silent) setLoading(true);
         const result = await getVotingSessions();
         if (result.success && result.data) {
             setSessions(result.data);
@@ -58,6 +60,13 @@ export function AdminVotingTable() {
 
     useEffect(() => {
         fetchSessions();
+        // Keep the list in sync with any external storage change
+        // (e.g. the "Alapértelmezett adatok" reset), so the table and the
+        // live chart never disagree about which session is active.
+        const unsubscribe = subscribeToStorage(() => {
+            fetchSessions({ silent: true });
+        });
+        return unsubscribe;
     }, [ fetchSessions ]);
 
     const handleCreate = async (data: VotingSessionFormData) => {
@@ -152,6 +161,10 @@ export function AdminVotingTable() {
 
     return (
         <>
+            <div className="mb-4 sm:mb-6">
+                <ActiveVotingChart/>
+            </div>
+
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold sm:text-lg">Szavazások Kezelése</h2>
                 <Button onClick={ () => setIsFormOpen(true) } size="sm">

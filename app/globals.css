@@ -72,6 +72,12 @@
   --input: oklch(0.92 0 0);
   --ring: oklch(0.25 0 0 / 0.1);
   --radius: 0.75rem;
+  /* Diagram színek a márka akcentusaiból (pink/narancs) + semleges árnyalatok */
+  --chart-1: oklch(0.62 0.21 16);
+  --chart-2: oklch(0.72 0.16 55);
+  --chart-3: oklch(0.45 0 0);
+  --chart-4: oklch(0.68 0.13 30);
+  --chart-5: oklch(0.78 0.05 60);
 }
 
 .dark {
@@ -95,6 +101,12 @@
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 10%);
   --ring: oklch(1 0 0 / 15%);
+  /* Diagram színek sötét módban: élénkebb akcentusok a kontraszthoz */
+  --chart-1: oklch(0.68 0.2 16);
+  --chart-2: oklch(0.76 0.16 58);
+  --chart-3: oklch(0.7 0 0);
+  --chart-4: oklch(0.72 0.14 32);
+  --chart-5: oklch(0.6 0.04 60);
 }
 
 @layer base {
