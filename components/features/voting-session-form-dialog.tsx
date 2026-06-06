@@ -136,9 +136,7 @@ export function VotingSessionFormDialog({
       votepool: validOptions,
     };
 
-    console.log("[v0] form submit data:", data);
     const result = await onSubmit(data);
-    console.log("[v0] form submit result:", result);
 
     if (result.success) {
       onOpenChange(false);

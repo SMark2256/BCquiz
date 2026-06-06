@@ -17,7 +17,9 @@ interface VoteTopicCardProps {
 
 export function VoteTopicCard({ topic, onVote, hasVoted, hasVotedAny }: VoteTopicCardProps) {
     const [ isVoting, setIsVoting ] = useState(false);
-    const [ imageLoaded, setImageLoaded ] = useState(false);
+    // Topics without an image have no <Image onLoad> to flip this flag,
+    // so treat them as "loaded" immediately to avoid a permanent skeleton.
+    const [ imageLoaded, setImageLoaded ] = useState(!topic.imageUrl);
 
     const handleVote = async () => {
         if (hasVotedAny || isVoting) return;
