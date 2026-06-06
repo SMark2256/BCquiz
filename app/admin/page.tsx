@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { AdminThemeProvider } from "@/components/providers/admin-theme-provider";
+import { AdminThemeToggle } from "@/components/features/admin-theme-toggle";
 import { useMockStatus } from "@/hooks/use-mock-data";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { AlertCircle, CalendarDays, Vote, ArrowLeft, Database, RotateCcw } from "lucide-react";
@@ -41,6 +43,7 @@ function AdminContent() {
                             </Badge>
                         ) }
                         <h1 className="text-sm font-bold sm:text-lg">Admin</h1>
+                        <AdminThemeToggle/>
                     </div>
                 </div>
             </header>
@@ -110,7 +113,9 @@ function AdminContent() {
 export default function AdminPage() {
     return (
         <QueryProvider>
-            <AdminContent/>
+            <AdminThemeProvider>
+                <AdminContent/>
+            </AdminThemeProvider>
         </QueryProvider>
     );
 }

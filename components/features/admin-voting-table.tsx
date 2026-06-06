@@ -66,7 +66,9 @@ export function AdminVotingTable() {
         const unsubscribe = subscribeToStorage(() => {
             fetchSessions({ silent: true });
         });
-        return unsubscribe;
+        return () => {
+            unsubscribe();
+        };
     }, [ fetchSessions ]);
 
     const handleCreate = async (data: VotingSessionFormData) => {
