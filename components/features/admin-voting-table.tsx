@@ -36,7 +36,7 @@ import { triggerStorageRefresh } from '@/hooks/use-mock-data';
 import { subscribeToStorage } from '@/services/mock-storage';
 import type { VotingSession, VotingSessionFormData } from '@/types';
 import { VotingSessionFormDialog } from './voting-session-form-dialog';
-import { ActiveVotingChart } from './active-voting-chart';
+// import { ActiveVotingChart } from './active-voting-chart';
 import { Card, CardContent } from "@/components/ui/card";
 
 export function AdminVotingTable() {
@@ -163,9 +163,9 @@ export function AdminVotingTable() {
 
     return (
         <>
-            <div className="mb-4 sm:mb-6">
-                <ActiveVotingChart/>
-            </div>
+            {/*<div className="mb-4 sm:mb-6">*/}
+            {/*    <ActiveVotingChart/>*/}
+            {/*</div>*/}
 
             <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold sm:text-lg dark:text-muted-foreground">Szavazások Kezelése</h2>
