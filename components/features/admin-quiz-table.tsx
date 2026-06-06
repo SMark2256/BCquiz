@@ -12,7 +12,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuGroup,
-    DropdownMenuItem,
+    DropdownMenuItem, DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -159,6 +159,7 @@ export function AdminQuizTable() {
                                                             { quiz.isActive ? 'Deaktiválás' : 'Aktiválás' }
                                                         </p>
                                                     </DropdownMenuItem>
+                                                    <DropdownMenuSeparator/>
                                                     <DropdownMenuItem
                                                         onClick={ () => setDeletingQuiz(quiz) }
                                                         className="text-destructive drop-down-menu-item"
