@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { ImageIcon, Plus, Trash2, GripVertical } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { ImageIcon, Plus, Trash2, GripVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,18 +11,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { SearchAndSelect, type MediaItem } from './search-and-select';
-import type { VotingSession, VotingSessionFormData, VoteTopicFormData, ApiResponse } from '@/types';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { SearchAndSelect, type MediaItem } from "./search-and-select";
+import type {
+  VotingSession,
+  VotingSessionFormData,
+  VoteTopicFormData,
+  ApiResponse,
+} from "@/types";
 
 interface VotingSessionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: VotingSessionFormData) => Promise<ApiResponse<VotingSession>>;
+  onSubmit: (
+    data: VotingSessionFormData,
+  ) => Promise<ApiResponse<VotingSession>>;
   session?: VotingSession | null;
 }
 
@@ -34,7 +41,7 @@ function generateTopicId(): string {
 }
 
 function emptyTopic(): VoteTopicFormData {
-  return { id: generateTopicId(), title: '', description: '', imageUrl: '' };
+  return { id: generateTopicId(), title: "", description: "", imageUrl: "" };
 }
 
 export function VotingSessionFormDialog({
@@ -44,38 +51,45 @@ export function VotingSessionFormDialog({
   session,
 }: VotingSessionFormDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [options, setOptions] = useState<VoteTopicFormData[]>([emptyTopic(), emptyTopic()]);
-  const [activeOptionIndex, setActiveOptionIndex] = useState<number | null>(null);
+  const [options, setOptions] = useState<VoteTopicFormData[]>([
+    emptyTopic(),
+    emptyTopic(),
+  ]);
+  const [activeOptionIndex, setActiveOptionIndex] = useState<number | null>(
+    null,
+  );
 
   // Reset/pre-fill the form whenever the dialog opens or the edited session changes.
   useEffect(() => {
     if (open) {
       if (session) {
         // Editing existing session - pre-fill from its votepool.
-        setTitle(session.title || '');
-        setDescription(session.description || '');
+        setTitle(session.title || "");
+        setDescription(session.description || "");
         setIsActive(session.isActive);
-        const sessionOptions = session.votepool.map(topic => ({
+        const sessionOptions = session.votepool.map((topic) => ({
           id: topic.id,
           title: topic.title,
-          description: topic.description || '',
-          imageUrl: topic.imageUrl || '',
+          description: topic.description || "",
+          imageUrl: topic.imageUrl || "",
         }));
         setOptions(
           sessionOptions.length >= MIN_OPTIONS
             ? sessionOptions
             : [
                 ...sessionOptions,
-                ...Array(MIN_OPTIONS - sessionOptions.length).fill(null).map(() => emptyTopic()),
-              ]
+                ...Array(MIN_OPTIONS - sessionOptions.length)
+                  .fill(null)
+                  .map(() => emptyTopic()),
+              ],
         );
       } else {
         // Creating a new session - blank form.
-        setTitle('');
-        setDescription('');
+        setTitle("");
+        setDescription("");
         setIsActive(true);
         setOptions([emptyTopic(), emptyTopic()]);
       }
@@ -101,7 +115,11 @@ export function VotingSessionFormDialog({
     }
   };
 
-  const handleOptionChange = (index: number, field: keyof VoteTopicFormData, value: string) => {
+  const handleOptionChange = (
+    index: number,
+    field: keyof VoteTopicFormData,
+    value: string,
+  ) => {
     const newOptions = [...options];
     newOptions[index] = { ...newOptions[index], [field]: value };
     setOptions(newOptions);
@@ -112,7 +130,7 @@ export function VotingSessionFormDialog({
     newOptions[index] = {
       ...newOptions[index],
       title: item.title,
-      imageUrl: item.imageUrl || '',
+      imageUrl: item.imageUrl || "",
     };
     setOptions(newOptions);
     setActiveOptionIndex(null);
@@ -122,7 +140,7 @@ export function VotingSessionFormDialog({
     e.preventDefault();
     setLoading(true);
 
-    const validOptions = options.filter(opt => opt.title.trim());
+    const validOptions = options.filter((opt) => opt.title.trim());
 
     if (validOptions.length < MIN_OPTIONS) {
       setLoading(false);
@@ -148,7 +166,7 @@ export function VotingSessionFormDialog({
   const isEditing = !!session;
   const canAddOption = options.length < MAX_OPTIONS;
   const canRemoveOption = options.length > MIN_OPTIONS;
-  const validOptionsCount = options.filter(opt => opt.title.trim()).length;
+  const validOptionsCount = options.filter((opt) => opt.title.trim()).length;
   const isFormValid = validOptionsCount >= MIN_OPTIONS;
 
   return (
@@ -156,12 +174,12 @@ export function VotingSessionFormDialog({
       <DialogContent className="max-h-[85vh] sm:max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto pb-20 pt-10 sm:py-10">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? 'Szavazás Szerkesztése' : 'Új Szavazás Létrehozása'}
+            {isEditing ? "Szavazás Szerkesztése" : "Új Szavazás Létrehozása"}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? 'Módosítsd a szavazás adatait és opcióit.'
-              : 'Hozz létre egy új szavazást 2-6 opcióval.'}
+              ? "Módosítsd a szavazás adatait és opcióit."
+              : "Hozz létre egy új szavazást 2-6 opcióval."}
           </DialogDescription>
         </DialogHeader>
 
@@ -194,7 +212,8 @@ export function VotingSessionFormDialog({
             <div className="space-y-0.5">
               <Label htmlFor="session-active">Aktív Szavazás</Label>
               <p className="text-xs text-muted-foreground">
-                Egyszerre csak egy szavazás lehet aktív. Aktiválással a többi automatikusan inaktívvá válik.
+                Egyszerre csak egy szavazás lehet aktív. Aktiválással a többi
+                automatikusan inaktívvá válik.
               </p>
             </div>
             <Switch
@@ -207,7 +226,9 @@ export function VotingSessionFormDialog({
           {/* Options Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Opciók ({validOptionsCount}/{MAX_OPTIONS})</Label>
+              <Label>
+                Opciók ({validOptionsCount}/{MAX_OPTIONS})
+              </Label>
               <Button
                 type="button"
                 variant="outline"
@@ -229,7 +250,9 @@ export function VotingSessionFormDialog({
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <GripVertical className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Opció {index + 1}</span>
+                      <span className="text-sm font-medium">
+                        Opció {index + 1}
+                      </span>
                     </div>
                     <Button
                       type="button"
@@ -249,7 +272,9 @@ export function VotingSessionFormDialog({
                     <Label className="text-xs">Media Keresése</Label>
                     <SearchAndSelect
                       onSelect={(item) => handleMediaSelect(item, index)}
-                      selectedTitle={activeOptionIndex === index ? option.title : undefined}
+                      selectedTitle={
+                        activeOptionIndex === index ? option.title : undefined
+                      }
                     />
                   </div>
 
@@ -261,7 +286,7 @@ export function VotingSessionFormDialog({
                         <div className="relative size-16 overflow-hidden rounded-lg">
                           <Image
                             src={option.imageUrl}
-                            alt={option.title || 'Option image'}
+                            alt={option.title || "Option image"}
                             fill
                             className="object-cover"
                           />
@@ -277,19 +302,29 @@ export function VotingSessionFormDialog({
                     <div className="flex-1 space-y-2">
                       <Input
                         value={option.title}
-                        onChange={(e) => handleOptionChange(index, 'title', e.target.value)}
+                        onChange={(e) =>
+                          handleOptionChange(index, "title", e.target.value)
+                        }
                         placeholder="Opció címe *"
                         required
                       />
                       <Input
-                        value={option.description || ''}
-                        onChange={(e) => handleOptionChange(index, 'description', e.target.value)}
+                        value={option.description || ""}
+                        onChange={(e) =>
+                          handleOptionChange(
+                            index,
+                            "description",
+                            e.target.value,
+                          )
+                        }
                         placeholder="Rövid leírás (opcionális)"
                       />
                       <Input
                         type="url"
-                        value={option.imageUrl || ''}
-                        onChange={(e) => handleOptionChange(index, 'imageUrl', e.target.value)}
+                        value={option.imageUrl || ""}
+                        onChange={(e) =>
+                          handleOptionChange(index, "imageUrl", e.target.value)
+                        }
                         placeholder="Kép URL (opcionális)"
                       />
                     </div>
@@ -300,12 +335,13 @@ export function VotingSessionFormDialog({
 
             {validOptionsCount < MIN_OPTIONS && (
               <p className="text-sm text-destructive">
-                Legalább {MIN_OPTIONS} opció szükséges a szavazás létrehozásához.
+                Legalább {MIN_OPTIONS} opció szükséges a szavazás
+                létrehozásához.
               </p>
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="bg-transparent">
             <Button
               type="button"
               variant="outline"
@@ -315,7 +351,7 @@ export function VotingSessionFormDialog({
               Mégse
             </Button>
             <Button type="submit" disabled={loading || !isFormValid}>
-              {loading ? 'Mentés...' : isEditing ? 'Mentés' : 'Létrehozás'}
+              {loading ? "Mentés..." : isEditing ? "Mentés" : "Létrehozás"}
             </Button>
           </DialogFooter>
         </form>

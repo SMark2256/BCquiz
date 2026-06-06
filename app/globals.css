@@ -49,6 +49,7 @@
 }
 
 :root {
+  /*Admin oldalon érvényes!*/
   color-scheme: light;
   --bc-bg: #08070d;
   --bc-bg-2: #120b18;
@@ -60,7 +61,7 @@
   --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
-  --primary: oklch(0.25 0 0); /* Senior fekete: nem tiszta #000, hanem mély szürke */
+  --primary: oklch(0.313 0 0); /* Senior fekete: nem tiszta #000, hanem mély szürke */
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.96 0 0);
   --secondary-foreground: oklch(0.25 0 0);
@@ -91,7 +92,7 @@
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.16 0 0);
   --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.98 0 0);
+  --primary: oklch(0.87 0 0);
   --primary-foreground: oklch(0.12 0 0);
   --secondary: oklch(0.22 0 0);
   --secondary-foreground: oklch(0.98 0 0);
@@ -249,7 +250,7 @@
   }
 
   .drop-down-menu-item{
-    @apply flex gap-2 justify-between items-center w-full cursor-pointer;
+    @apply flex gap-2 justify-between items-center w-full cursor-pointer hover:bg-primary-foreground/10;
   }
 
 }
