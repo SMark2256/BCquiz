@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, useMemo } from 'react';
 import {
   subscribeToStorage,
   getLocalVotingSessions,
@@ -51,5 +51,10 @@ export function useVotingSessions(): VotingSession[] {
  */
 export function useActiveVotingSession(): VotingSession | null {
   const sessions = useVotingSessions();
-  return sessions.find(s => s.isActive) ?? null;
+
+  const activeSession = useMemo(() => {
+    return sessions.find(s => s.isActive) ?? null;
+  }, [sessions]); // Függőség: csak akkor változik, ha a sessions változik
+
+  return activeSession;
 }
