@@ -17,78 +17,75 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { SearchAndSelect, type MediaItem } from './search-and-select';
-import type { Poll, PollFormData, PollOptionFormData, ApiResponse } from '@/types';
+import type { VotingSession, VotingSessionFormData, VoteTopicFormData, ApiResponse } from '@/types';
 
-interface PollFormDialogProps {
+interface VotingSessionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: PollFormData) => Promise<ApiResponse<Poll>>;
-  poll?: Poll | null;
+  onSubmit: (data: VotingSessionFormData) => Promise<ApiResponse<VotingSession>>;
+  session?: VotingSession | null;
 }
 
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 6;
 
-function generateOptionId(): string {
-  return `opt-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+function generateTopicId(): string {
+  return `topic-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 }
 
-export function PollFormDialog({
+function emptyTopic(): VoteTopicFormData {
+  return { id: generateTopicId(), title: '', description: '', imageUrl: '' };
+}
+
+export function VotingSessionFormDialog({
   open,
   onOpenChange,
   onSubmit,
-  poll,
-}: PollFormDialogProps) {
+  session,
+}: VotingSessionFormDialogProps) {
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isActive, setIsActive] = useState(true);
-  const [options, setOptions] = useState<PollOptionFormData[]>([
-    { id: generateOptionId(), title: '', description: '', imageUrl: '' },
-    { id: generateOptionId(), title: '', description: '', imageUrl: '' },
-  ]);
+  const [options, setOptions] = useState<VoteTopicFormData[]>([emptyTopic(), emptyTopic()]);
   const [activeOptionIndex, setActiveOptionIndex] = useState<number | null>(null);
 
-  // Reset form when dialog opens/closes or poll changes
+  // Reset/pre-fill the form whenever the dialog opens or the edited session changes.
   useEffect(() => {
     if (open) {
-      if (poll) {
-        // Editing existing poll - pre-fill form
-        setTitle(poll.title);
-        setDescription(poll.description || '');
-        setIsActive(poll.isActive);
-        const pollOptions = Object.values(poll.options).map(opt => ({
-          id: opt.id,
-          title: opt.title,
-          description: opt.description || '',
-          imageUrl: opt.imageUrl || '',
+      if (session) {
+        // Editing existing session - pre-fill from its votepool.
+        setTitle(session.title || '');
+        setDescription(session.description || '');
+        setIsActive(session.isActive);
+        const sessionOptions = session.votepool.map(topic => ({
+          id: topic.id,
+          title: topic.title,
+          description: topic.description || '',
+          imageUrl: topic.imageUrl || '',
         }));
-        setOptions(pollOptions.length >= MIN_OPTIONS ? pollOptions : [
-          ...pollOptions,
-          ...Array(MIN_OPTIONS - pollOptions.length).fill(null).map(() => ({
-            id: generateOptionId(),
-            title: '',
-            description: '',
-            imageUrl: '',
-          })),
-        ]);
+        setOptions(
+          sessionOptions.length >= MIN_OPTIONS
+            ? sessionOptions
+            : [
+                ...sessionOptions,
+                ...Array(MIN_OPTIONS - sessionOptions.length).fill(null).map(() => emptyTopic()),
+              ]
+        );
       } else {
-        // Creating new poll - reset form
+        // Creating a new session - blank form.
         setTitle('');
         setDescription('');
         setIsActive(true);
-        setOptions([
-          { id: generateOptionId(), title: '', description: '', imageUrl: '' },
-          { id: generateOptionId(), title: '', description: '', imageUrl: '' },
-        ]);
+        setOptions([emptyTopic(), emptyTopic()]);
       }
       setActiveOptionIndex(null);
     }
-  }, [open, poll]);
+  }, [open, session]);
 
   const handleAddOption = () => {
     if (options.length < MAX_OPTIONS) {
-      setOptions([...options, { id: generateOptionId(), title: '', description: '', imageUrl: '' }]);
+      setOptions([...options, emptyTopic()]);
     }
   };
 
@@ -104,7 +101,7 @@ export function PollFormDialog({
     }
   };
 
-  const handleOptionChange = (index: number, field: keyof PollOptionFormData, value: string) => {
+  const handleOptionChange = (index: number, field: keyof VoteTopicFormData, value: string) => {
     const newOptions = [...options];
     newOptions[index] = { ...newOptions[index], [field]: value };
     setOptions(newOptions);
@@ -126,33 +123,35 @@ export function PollFormDialog({
     setLoading(true);
 
     const validOptions = options.filter(opt => opt.title.trim());
-    
+
     if (validOptions.length < MIN_OPTIONS) {
       setLoading(false);
       return;
     }
 
-    const data: PollFormData = {
-      title,
-      description: description || undefined,
+    const data: VotingSessionFormData = {
+      title: title.trim() || undefined,
+      description: description.trim() || undefined,
       isActive: isActive || false,
-      options: validOptions,
+      votepool: validOptions,
     };
 
+    console.log("[v0] form submit data:", data);
     const result = await onSubmit(data);
-    
+    console.log("[v0] form submit result:", result);
+
     if (result.success) {
       onOpenChange(false);
     }
-    
+
     setLoading(false);
   };
 
-  const isEditing = !!poll;
+  const isEditing = !!session;
   const canAddOption = options.length < MAX_OPTIONS;
   const canRemoveOption = options.length > MIN_OPTIONS;
   const validOptionsCount = options.filter(opt => opt.title.trim()).length;
-  const isFormValid = title.trim() && validOptionsCount >= MIN_OPTIONS;
+  const isFormValid = validOptionsCount >= MIN_OPTIONS;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -169,23 +168,22 @@ export function PollFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Poll Title */}
+          {/* Session Title */}
           <div className="space-y-2">
-            <Label htmlFor="poll-title">Szavazás Címe *</Label>
+            <Label htmlFor="session-title">Szavazás Címe</Label>
             <Input
-              id="poll-title"
+              id="session-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="pl. Következő Kvízest Témája"
-              required
             />
           </div>
 
-          {/* Poll Description */}
+          {/* Session Description */}
           <div className="space-y-2">
-            <Label htmlFor="poll-description">Leírás</Label>
+            <Label htmlFor="session-description">Leírás</Label>
             <Textarea
-              id="poll-description"
+              id="session-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Rövid leírás a szavazásról..."
@@ -196,13 +194,13 @@ export function PollFormDialog({
           {/* Active Toggle */}
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <Label htmlFor="poll-active">Aktív Szavazás</Label>
+              <Label htmlFor="session-active">Aktív Szavazás</Label>
               <p className="text-xs text-muted-foreground">
-                Az inaktív szavazások nem jelennek meg a nyilvános oldalon.
+                Egyszerre csak egy szavazás lehet aktív. Aktiválással a többi automatikusan inaktívvá válik.
               </p>
             </div>
             <Switch
-              id="poll-active"
+              id="session-active"
               checked={isActive}
               onCheckedChange={setIsActive}
             />

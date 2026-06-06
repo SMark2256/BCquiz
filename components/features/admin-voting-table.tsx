@@ -7,14 +7,6 @@ import { Plus, Trash2, MoreVertical, Vote, Pencil, RotateCcw, Power, PowerOff, C
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -33,58 +25,59 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-    getPolls,
-    createPoll,
-    updatePoll,
-    deletePoll,
-    resetPollVotes,
-    togglePollActive
-} from '@/services/poll-service';
+    getVotingSessions,
+    createVotingSession,
+    updateVotingSession,
+    deleteVotingSession,
+    resetVotingSessionVotes,
+    toggleVotingSessionActive,
+} from '@/services/voting-service';
 import { triggerStorageRefresh } from '@/hooks/use-mock-data';
-import type { Poll, PollFormData } from '@/types';
-import { PollFormDialog } from './poll-form-dialog';
+import type { VotingSession, VotingSessionFormData } from '@/types';
+import { VotingSessionFormDialog } from './voting-session-form-dialog';
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
 
-export function AdminPollsTable() {
-    const [ polls, setPolls ] = useState<Poll[]>([]);
+export function AdminVotingTable() {
+    const [ sessions, setSessions ] = useState<VotingSession[]>([]);
     const [ loading, setLoading ] = useState(true);
     const [ isFormOpen, setIsFormOpen ] = useState(false);
-    const [ editingPoll, setEditingPoll ] = useState<Poll | null>(null);
+    const [ editingSession, setEditingSession ] = useState<VotingSession | null>(null);
     const [ deleteId, setDeleteId ] = useState<string | null>(null);
     const [ resetId, setResetId ] = useState<string | null>(null);
     const [ isDeleting, setIsDeleting ] = useState(false);
     const [ isResetting, setIsResetting ] = useState(false);
 
-    const fetchPolls = useCallback(async () => {
+    const fetchSessions = useCallback(async () => {
         setLoading(true);
-        const result = await getPolls();
+        const result = await getVotingSessions();
         if (result.success && result.data) {
-            setPolls(result.data);
+            setSessions(result.data);
         }
         setLoading(false);
     }, []);
 
     useEffect(() => {
-        fetchPolls();
-    }, [ fetchPolls ]);
+        fetchSessions();
+    }, [ fetchSessions ]);
 
-    const handleCreate = async (data: PollFormData) => {
-        const result = await createPoll(data);
+    const handleCreate = async (data: VotingSessionFormData) => {
+        const result = await createVotingSession(data);
         if (result.success) {
             triggerStorageRefresh();
-            fetchPolls();
+            fetchSessions();
         }
         return result;
     };
 
-    const handleUpdate = async (data: PollFormData) => {
-        if (!editingPoll) return { success: false, error: 'No poll to edit' };
+    const handleUpdate = async (data: VotingSessionFormData) => {
+        if (!editingSession) return { success: false, error: 'Nincs szerkesztendő szavazás' };
 
-        const result = await updatePoll(editingPoll.id, data);
+        const result = await updateVotingSession(editingSession.id, data);
         if (result.success) {
             triggerStorageRefresh();
-            setEditingPoll(null);
+            setEditingSession(null);
+            // Re-fetch so the edited session is reflected immediately in the list.
+            fetchSessions();
         }
         return result;
     };
@@ -93,10 +86,10 @@ export function AdminPollsTable() {
         if (!deleteId) return;
 
         setIsDeleting(true);
-        const result = await deletePoll(deleteId);
+        const result = await deleteVotingSession(deleteId);
         if (result.success) {
             triggerStorageRefresh();
-            fetchPolls();
+            fetchSessions();
         }
         setIsDeleting(false);
         setDeleteId(null);
@@ -106,38 +99,38 @@ export function AdminPollsTable() {
         if (!resetId) return;
 
         setIsResetting(true);
-        const result = await resetPollVotes(resetId);
+        const result = await resetVotingSessionVotes(resetId);
         if (result.success) {
             triggerStorageRefresh();
-            fetchPolls();
+            fetchSessions();
         }
         setIsResetting(false);
         setResetId(null);
     };
 
-    const handleToggleActive = async (pollId: string) => {
-        const result = await togglePollActive(pollId);
+    const handleToggleActive = async (sessionId: string) => {
+        const result = await toggleVotingSessionActive(sessionId);
         if (result.success) {
             triggerStorageRefresh();
-            fetchPolls();
+            fetchSessions();
         }
     };
 
-    const handleEdit = (poll: Poll) => {
-        setEditingPoll(poll);
+    const handleEdit = (session: VotingSession) => {
+        setEditingSession(session);
         setIsFormOpen(true);
     };
 
     const handleFormClose = (open: boolean) => {
         setIsFormOpen(open);
         if (!open) {
-            setEditingPoll(null);
+            setEditingSession(null);
         }
     };
 
-    // Calculate total votes for a poll
-    const getTotalVotes = (poll: Poll) => {
-        return Object.values(poll.options).reduce((sum, opt) => sum + opt.votes, 0);
+    // Total votes across a session's votepool.
+    const getTotalVotes = (session: VotingSession) => {
+        return session.votepool.reduce((sum, topic) => sum + topic.votes, 0);
     };
 
     if (loading) {
@@ -168,23 +161,23 @@ export function AdminPollsTable() {
             </div>
 
             <div className="flex flex-col gap-2 sm:gap-3">
-                { polls.length === 0 ? (
+                { sessions.length === 0 ? (
                     <Card>
                         <CardContent className="py-8 text-center text-muted-foreground text-base">
                             Nincsenek szavazások. Hozd létre az elsőt!
                         </CardContent>
                     </Card>
                 ) : (
-                    polls.map((poll) => (
-                        <Card key={ poll.id } className="relative overflow-hidden h-30 sm:h-34">
+                    sessions.map((session) => (
+                        <Card key={ session.id } className="relative overflow-hidden h-30 sm:h-34">
                             <CardContent className="py-2 px-4">
                                 <div className="flex flex-col flex-1">
                                     <div className="flex flex-col flex-1 gap-4">
                                         <div className="flex items-start justify-between">
                                             <div className="min-w-0 flex-1 max-w-5/6">
-                                                <p className="flex-wrap font-medium text-base">{ poll.title }</p>
-                                                { poll.description && (
-                                                    <p className="flex-nowrap text-sm text-muted-foreground truncate">{ poll.description }</p>
+                                                <p className="flex-wrap font-medium text-base">{ session.title || 'Névtelen szavazás' }</p>
+                                                { session.description && (
+                                                    <p className="flex-nowrap text-sm text-muted-foreground truncate">{ session.description }</p>
                                                 ) }
                                             </div>
                                         </div>
@@ -194,15 +187,15 @@ export function AdminPollsTable() {
                                         className="absolute flex items-center gap-2 sm:gap-4 text-muted-foreground text-xs sm:text-base bottom-3 left-3">
                                             <span className="flex items-center gap-1">
                                                 <CalendarIcon className="size-4"/>
-                                                { format(poll.createdAt, 'yyyy. MMM dd.', { locale: hu }) }
+                                                { format(session.createdAt, 'yyyy. MMM dd.', { locale: hu }) }
                                             </span>
                                         <span className="flex items-center gap-1">
                                                 <Vote className="size-4"/>
-                                            { Object.keys(poll.options).length } opció
+                                            { session.votepool.length } opció
                                             </span>
                                         <span className="flex items-center gap-1">
                                                 <span
-                                                    className="font-semibold text-foreground">{ getTotalVotes(poll) }
+                                                    className="font-semibold text-foreground">{ getTotalVotes(session) }
                                                 </span> szavazat
                                             </span>
                                     </div>
@@ -214,28 +207,28 @@ export function AdminPollsTable() {
                                                 <MoreVertical className="size-4"/>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-38 sm:w-32">
-                                                <DropdownMenuItem onClick={ () => handleEdit(poll) }
+                                                <DropdownMenuItem onClick={ () => handleEdit(session) }
                                                                   className="drop-down-menu-item">
                                                     <Pencil className="size-4"/>
                                                     <p className="flex-1">
                                                         Szerkesztés
                                                     </p>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={ () => handleToggleActive(poll.id) }
+                                                <DropdownMenuItem onClick={ () => handleToggleActive(session.id) }
                                                                   className="drop-down-menu-item">
-                                                    { poll.isActive ? <PowerOff className="size-4"/> :
+                                                    { session.isActive ? <PowerOff className="size-4"/> :
                                                         <Power className="size-4"/> }
                                                     <p className="flex-1">
-                                                        { poll.isActive ? 'Deaktiválás' : 'Aktiválás' }
+                                                        { session.isActive ? 'Deaktiválás' : 'Aktiválás' }
                                                     </p>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={ () => setResetId(poll.id) }
+                                                <DropdownMenuItem onClick={ () => setResetId(session.id) }
                                                                   className="text-amber-600 drop-down-menu-item">
                                                     <RotateCcw className="size-4"/>
                                                     <p className="flex-1">Szavazatok nullázása</p>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator/>
-                                                <DropdownMenuItem onClick={ () => setDeleteId(poll.id) }
+                                                <DropdownMenuItem onClick={ () => setDeleteId(session.id) }
                                                                   className="text-destructive drop-down-menu-item">
                                                     <Trash2 className="size-4"/>
                                                     <p className="flex-1">Törlés</p>
@@ -244,8 +237,8 @@ export function AdminPollsTable() {
                                         </DropdownMenu>
                                     </div>
                                     <div className="absolute bottom-3 right-3">
-                                        <Badge variant={ poll.isActive ? 'default' : 'secondary' }>
-                                            { poll.isActive ? 'Aktív' : 'Inaktív' }
+                                        <Badge variant={ session.isActive ? 'default' : 'secondary' }>
+                                            { session.isActive ? 'Aktív' : 'Inaktív' }
                                         </Badge>
                                     </div>
                                 </div>
@@ -255,11 +248,11 @@ export function AdminPollsTable() {
                 ) }
             </div>
 
-            <PollFormDialog
+            <VotingSessionFormDialog
                 open={ isFormOpen }
                 onOpenChange={ handleFormClose }
-                onSubmit={ editingPoll ? handleUpdate : handleCreate }
-                poll={ editingPoll }
+                onSubmit={ editingSession ? handleUpdate : handleCreate }
+                session={ editingSession }
             />
 
             {/* Delete Confirmation Dialog */ }

@@ -1,12 +1,13 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getVoteTopics, voteForTopic } from '@/services/vote-service';
+import { getActiveVotingSession, voteForVoteTopic } from '@/services/voting-service';
 import type { VoteTopic } from '@/types';
 
 const VOTE_STORAGE_KEY = 'bcquiz_vote_record';
 
 interface VoteRecord {
+  sessionId: string;
   topicId: string;
   timestamp: number;
   fingerprint: string;
@@ -15,7 +16,7 @@ interface VoteRecord {
 // Generate a simple browser fingerprint to help prevent vote manipulation
 function generateFingerprint(): string {
   if (typeof window === 'undefined') return 'server';
-  
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (ctx) {
@@ -23,7 +24,7 @@ function generateFingerprint(): string {
     ctx.font = '14px Arial';
     ctx.fillText('fingerprint', 2, 2);
   }
-  
+
   const data = [
     navigator.userAgent,
     navigator.language,
@@ -33,8 +34,7 @@ function generateFingerprint(): string {
     new Date().getTimezoneOffset(),
     canvas.toDataURL(),
   ].join('|');
-  
-  // Simple hash
+
   let hash = 0;
   for (let i = 0; i < data.length; i++) {
     const char = data.charCodeAt(i);
@@ -45,46 +45,48 @@ function generateFingerprint(): string {
 }
 
 export function useVoting() {
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [topics, setTopics] = useState<VoteTopic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [voteRecord, setVoteRecord] = useState<VoteRecord | null>(null);
   const [fingerprint, setFingerprint] = useState<string>('');
 
-  const fetchTopics = useCallback(async () => {
+  // Load the single active voting session and its votepool.
+  const fetchActiveSession = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
-    const result = await getVoteTopics();
-    
-    if (result.success && result.data) {
-      setTopics(result.data);
+
+    const result = await getActiveVotingSession();
+
+    if (result.success) {
+      const session = result.data;
+      setSessionId(session?.id ?? null);
+      setTopics(
+        session ? [...session.votepool].sort((a, b) => b.votes - a.votes) : []
+      );
     } else {
-      setError(result.error || 'Nem sikerült betölteni a témákat');
+      setError(result.error || 'Nem sikerült betölteni a szavazást');
     }
-    
+
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchTopics();
-    
-    // Generate fingerprint
+    fetchActiveSession();
+
     const fp = generateFingerprint();
     setFingerprint(fp);
-    
-    // Load vote record from localStorage
+
+    // Restore the persisted vote record (basic anti-tampering via fingerprint).
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(VOTE_STORAGE_KEY);
       if (saved) {
         try {
           const record = JSON.parse(saved) as VoteRecord;
-          // Verify fingerprint matches (basic anti-tampering)
           if (record.fingerprint === fp) {
             setVoteRecord(record);
           } else {
-            // Fingerprint mismatch - could be tampering, keep the vote locked
-            // but don't restore the old record
             localStorage.removeItem(VOTE_STORAGE_KEY);
           }
         } catch {
@@ -92,41 +94,58 @@ export function useVoting() {
         }
       }
     }
-  }, [fetchTopics]);
+  }, [fetchActiveSession]);
 
   const vote = async (topicId: string): Promise<{ success: boolean; error?: string }> => {
-    // 1. Mentjük az előző állapotot hiba esetére
+    if (!sessionId) {
+      return { success: false, error: 'Nincs aktív szavazás' };
+    }
+
+    // One vote per active session.
+    if (voteRecord && voteRecord.sessionId === sessionId) {
+      return { success: false, error: 'Már leadtad a szavazatod erre a szavazásra.' };
+    }
+
+    // Optimistic update.
     const previousTopics = [...topics];
+    setTopics(prev =>
+      prev
+        .map(topic => (topic.id === topicId ? { ...topic, votes: topic.votes + 1 } : topic))
+        .sort((a, b) => b.votes - a.votes)
+    );
 
-    // 2. Optimista frissítés: azonnal módosítjuk a UI-t
-    setTopics(prev => prev.map(topic =>
-        topic.id === topicId ? { ...topic, votes: topic.votes + 1 } : topic
-    ).sort((a, b) => b.votes - a.votes));
-
-    const result = await voteForTopic(topicId);
+    const result = await voteForVoteTopic(sessionId, topicId);
 
     if (!result.success) {
-      // 3. Rollback: ha a szerver hibát dob, visszaállítjuk az eredeti adatokat
+      // Rollback on failure.
       setTopics(previousTopics);
       setError(result.error || 'Hiba a szavazat leadásakor');
       return { success: false, error: result.error || 'Hiba a szavazat leadásakor' };
-    } else {
-      // 4. SWR frissítés: háttérben lekérjük a legfrissebb összesített állást
-      fetchTopics();
-      return { success: true };
     }
+
+    // Persist the vote record so the user stays locked after a reload.
+    const newRecord: VoteRecord = { sessionId, topicId, timestamp: Date.now(), fingerprint };
+    setVoteRecord(newRecord);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(VOTE_STORAGE_KEY, JSON.stringify(newRecord));
+    }
+
+    // Re-sync with the latest aggregated counts.
+    fetchActiveSession();
+    return { success: true };
   };
 
-  const hasVoted = (topicId: string) => voteRecord?.topicId === topicId;
-  const hasVotedAny = voteRecord !== null;
+  const hasVoted = (topicId: string) =>
+    voteRecord?.sessionId === sessionId && voteRecord?.topicId === topicId;
+  const hasVotedAny = voteRecord?.sessionId === sessionId && voteRecord !== null;
 
-  return { 
-    topics, 
-    loading, 
-    error, 
-    vote, 
-    hasVoted, 
+  return {
+    topics,
+    loading,
+    error,
+    vote,
+    hasVoted,
     hasVotedAny,
-    refetch: fetchTopics 
+    refetch: fetchActiveSession,
   };
 }
