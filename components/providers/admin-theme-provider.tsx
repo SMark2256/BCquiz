@@ -16,6 +16,7 @@ const DEFAULT_THEME: AdminTheme = 'dark';
 
 interface AdminThemeContextValue {
     theme: AdminTheme;
+    mounted: boolean;
     setTheme: (theme: AdminTheme) => void;
     toggleTheme: () => void;
 }
@@ -42,8 +43,17 @@ function readStoredTheme(): AdminTheme {
  * same theme.
  */
 export function AdminThemeProvider({ children }: { children: React.ReactNode }) {
-    // Lazy init from storage so the very first paint already matches the choice.
-    const [ theme, setThemeState ] = useState<AdminTheme>(readStoredTheme);
+    // Always start from the default so server and first client paint agree
+    // (no hydration mismatch). The stored preference is applied right after
+    // mount in the layout effect below, before the browser paints.
+    const [ theme, setThemeState ] = useState<AdminTheme>(DEFAULT_THEME);
+    const [ mounted, setMounted ] = useState(false);
+
+    // On mount, adopt the persisted preference (runs only on the client).
+    useLayoutEffect(() => {
+        setThemeState(readStoredTheme());
+        setMounted(true);
+    }, []);
 
     // Apply/remove the `dark` class on <html> for the lifetime of the admin tree.
     useLayoutEffect(() => {
@@ -91,7 +101,7 @@ export function AdminThemeProvider({ children }: { children: React.ReactNode }) 
     }, []);
 
     return (
-        <AdminThemeContext.Provider value={ { theme, setTheme, toggleTheme } }>
+        <AdminThemeContext.Provider value={ { theme, mounted, setTheme, toggleTheme } }>
             { children }
         </AdminThemeContext.Provider>
     );
