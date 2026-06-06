@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell, LabelList } from 'recharts';
 import { Activity, Trophy, Users, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
