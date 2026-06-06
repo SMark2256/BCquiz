@@ -52,6 +52,12 @@ export function ActiveVotingChart() {
     return { votes: { label: 'Szavazat' } } satisfies ChartConfig;
   }, []);
 
+  // Recharts v3 keeps layout props (margin, etc.) in an internal store and
+  // dispatches on every reference change. An inline object would be a new
+  // reference each render, causing an infinite update loop (React error #185),
+  // so we memoize it to a single stable reference.
+  const chartMargin = useMemo(() => ({ left: 8, right: 40, top: 4, bottom: 4 }), []);
+
   // No active session — make this state explicit for the admin.
   if (!activeSession) {
     return (
@@ -119,7 +125,7 @@ export function ActiveVotingChart() {
                 accessibilityLayer
                 data={chartData}
                 layout="vertical"
-                margin={{ left: 8, right: 40, top: 4, bottom: 4 }}
+                margin={chartMargin}
               >
                 <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                 <YAxis
