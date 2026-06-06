@@ -53,26 +53,44 @@ export function ActiveVotingChart() {
   }, []);
 
   const renderTooltip = useCallback(
-      (value: any, name: any, item: any) => (
-          <div className="flex w-full items-center justify-between gap-3">
-      <span
+    (value: any, _name: any, item: any) => (
+      <div className="flex w-full items-center justify-between gap-3">
+        <span
           className="size-2.5 shrink-0 rounded-[2px]"
           style={{ backgroundColor: item.payload.fill }}
-      />
-            <span className="text-muted-foreground">{item.payload.label}</span>
-            <span className="ml-auto font-mono font-medium tabular-nums">
-        {value} ({item.payload.percentage}%)
-      </span>
-          </div>
-      ),
-      [] // Mivel nem függ semmi külső változótól, ez stabil marad
+        />
+        <span className="text-muted-foreground">{item.payload.label}</span>
+        <span className="ml-auto font-mono font-medium tabular-nums">
+          {value} ({item.payload.percentage}%)
+        </span>
+      </div>
+    ),
+    [], // Does not depend on any external value, so the reference stays stable.
   );
 
-  // Recharts v3 keeps layout props (margin, etc.) in an internal store and
-  // dispatches on every reference change. An inline object would be a new
-  // reference each render, causing an infinite update loop (React error #185),
-  // so we memoize it to a single stable reference.
+  // Recharts v3 keeps layout props (margin, axis config, etc.) in an internal
+  // Redux store and dispatches on every reference change. An inline object or
+  // function would be a new reference each render, causing notifyNestedSubs to
+  // fire endlessly — the "Maximum update depth exceeded" loop (React #185).
+  // Every prop below is therefore memoized to a single stable reference.
   const chartMargin = useMemo(() => ({ left: 8, right: 40, top: 4, bottom: 4 }), []);
+
+  // Stable tick style object for the YAxis (inline objects re-register the axis).
+  const yAxisTick = useMemo(() => ({ fontSize: 12 }), []);
+
+  // Stable tick formatter for the YAxis labels.
+  const yAxisTickFormatter = useCallback(
+    (value: string) => (value.length > 16 ? `${value.slice(0, 15)}…` : value),
+    [],
+  );
+
+  // The <ChartTooltip content={...}> element is cloned by Recharts on every
+  // render. Memoizing the element keeps its identity stable across renders so
+  // it is not re-registered into the tooltip store on each pass.
+  const tooltipContent = useMemo(
+    () => <ChartTooltipContent formatter={renderTooltip} />,
+    [renderTooltip],
+  );
 
   // No active session — make this state explicit for the admin.
   if (!activeSession) {
@@ -92,6 +110,7 @@ export function ActiveVotingChart() {
   const leader = chartData.find((d) => d.id === leaderId);
   // Dynamic height so many options stay readable.
   const chartHeight = Math.max(180, chartData.length * 56);
+  const chartStyle = { height: chartHeight };
 
   return (
     <Card className="overflow-hidden">
@@ -136,7 +155,7 @@ export function ActiveVotingChart() {
               </div>
             )}
 
-            <ChartContainer config={chartConfig} style={{ height: chartHeight }} className="w-full">
+            <ChartContainer config={chartConfig} style={chartStyle} className="w-full">
               <BarChart
                 accessibilityLayer
                 data={chartData}
@@ -150,16 +169,11 @@ export function ActiveVotingChart() {
                   tickLine={false}
                   axisLine={false}
                   width={110}
-                  tick={{ fontSize: 12 }}
-                  tickFormatter={(value: string) =>
-                    value.length > 16 ? `${value.slice(0, 15)}…` : value
-                  }
+                  tick={yAxisTick}
+                  tickFormatter={yAxisTickFormatter}
                 />
                 <XAxis dataKey="votes" type="number" hide />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent formatter={renderTooltip} />}
-                />
+                <ChartTooltip cursor={false} content={tooltipContent} />
                 <Bar dataKey="votes" radius={6} maxBarSize={44}>
                   {chartData.map((entry) => (
                     <Cell key={entry.id} fill={entry.fill} />
