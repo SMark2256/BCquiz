@@ -52,6 +52,22 @@ export function ActiveVotingChart() {
     return { votes: { label: 'Szavazat' } } satisfies ChartConfig;
   }, []);
 
+  const renderTooltip = useCallback(
+      (value: any, name: any, item: any) => (
+          <div className="flex w-full items-center justify-between gap-3">
+      <span
+          className="size-2.5 shrink-0 rounded-[2px]"
+          style={{ backgroundColor: item.payload.fill }}
+      />
+            <span className="text-muted-foreground">{item.payload.label}</span>
+            <span className="ml-auto font-mono font-medium tabular-nums">
+        {value} ({item.payload.percentage}%)
+      </span>
+          </div>
+      ),
+      [] // Mivel nem függ semmi külső változótól, ez stabil marad
+  );
+
   // Recharts v3 keeps layout props (margin, etc.) in an internal store and
   // dispatches on every reference change. An inline object would be a new
   // reference each render, causing an infinite update loop (React error #185),
@@ -142,22 +158,7 @@ export function ActiveVotingChart() {
                 <XAxis dataKey="votes" type="number" hide />
                 <ChartTooltip
                   cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value, _name, item) => (
-                        <div className="flex w-full items-center justify-between gap-3">
-                          <span
-                            className="size-2.5 shrink-0 rounded-[2px]"
-                            style={{ backgroundColor: item.payload.fill }}
-                          />
-                          <span className="text-muted-foreground">{item.payload.label}</span>
-                          <span className="ml-auto font-mono font-medium tabular-nums">
-                            {value} ({item.payload.percentage}%)
-                          </span>
-                        </div>
-                      )}
-                    />
-                  }
+                  content={<ChartTooltipContent formatter={renderTooltip} />}
                 />
                 <Bar dataKey="votes" radius={6} maxBarSize={44}>
                   {chartData.map((entry) => (
