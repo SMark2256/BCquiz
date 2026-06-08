@@ -1,30 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { subscribeToUpcomingQuizzes, subscribeToQuizzes } from '@/services/quiz-service';
-import type { Quiz } from '@/types';
+import { useQuery } from "@tanstack/react-query";
+import { fetchQuizzesDirectly } from "@/services/quiz/quiz-service";
 
 export function useQuizzes(upcomingOnly: boolean = false) {
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: quizzes = [],
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["quizzes", { upcomingOnly }],
+    queryFn: () => fetchQuizzesDirectly(upcomingOnly),
+    staleTime: 1000 * 60 * 60 * 24, // 24 óra: eddig nem indít új kérést, ha van adat
+    gcTime: 1000 * 60 * 60 * 24, // 24 óra: eddig tartja meg a memóriában
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    const subscribeFn = upcomingOnly ? subscribeToUpcomingQuizzes : subscribeToQuizzes;
-
-    const unsubscribe = subscribeFn((data) => {
-      setQuizzes(data);
-      setLoading(false);
-      setError(null);
-    }, (err: any) => {
-      console.error('Quiz subscription error:', err);
-      setError('Hiba történt a kvízek betöltésekor.');
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [upcomingOnly]);
-
-  return { quizzes, loading, error };
+  return {
+    quizzes,
+    loading,
+    error:
+      error instanceof Error ? error.message : error ? "Hiba történt" : null,
+    refetch,
+  };
 }

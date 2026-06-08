@@ -18,13 +18,46 @@ import {
   ArrowLeft,
   Database,
   RotateCcw,
+  Loader2,
+  ShieldAlert,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 function AdminContent() {
+  const { user, isAdmin, loading, login, logout } = useAuth();
   const { isMockMode, resetData } = useMockStatus();
   const firebaseConfigured = isFirebaseConfigured();
   const usingMockStorage = isMockMode || !firebaseConfigured;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
+        <div className="mb-6 rounded-full bg-primary/10 p-6">
+          <ShieldAlert className="size-12 text-primary" />
+        </div>
+        <h1 className="mb-2 text-2xl font-bold">Adminisztrációs Felület</h1>
+        <p className="mb-8 max-w-sm text-muted-foreground">
+          A tartalom eléréséhez be kell jelentkezned egy engedélyezett Google
+          fiókkal.
+        </p>
+        <Button onClick={login} size="lg" className="gap-2">
+          <LogIn className="size-5" />
+          Bejelentkezés Google fiókkal
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,7 +75,7 @@ function AdminContent() {
             </Link>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            {usingMockStorage && (
+            {usingMockStorage ? (
               <Badge
                 variant="outline"
                 className="gap-1 border-amber-500/50 bg-amber-500/10 px-1.5 py-0.5 text-xs text-amber-600 sm:gap-1.5 sm:px-2"
@@ -50,9 +83,26 @@ function AdminContent() {
                 <Database className="size-3" />
                 <span className="hidden sm:inline">Helyi tárolás</span>
               </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="gap-1 border-amber-500/50 bg-amber-500/10 px-1.5 py-0.5 text-xs text-amber-600 sm:gap-1.5 sm:px-2"
+              >
+                <Database className="size-3" />
+                <span className="hidden sm:inline">Felhő tárolás</span>
+              </Badge>
             )}
             <h1 className="text-sm font-bold sm:text-lg">Admin</h1>
             <AdminThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              className="size-8 text-muted-foreground hover:text-destructive"
+              title="Kijelentkezés"
+            >
+              <LogOut className="size-5" />
+            </Button>
           </div>
         </div>
       </header>

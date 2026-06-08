@@ -61,3 +61,11 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
 }
+
+export interface DbVoteRecord {
+  id: string; // sessionId_fingerprint formátum a garantált egyediségért
+  sessionId: string;
+  topicId: string;
+  fingerprint: string;
+  timestamp: Date;
+}

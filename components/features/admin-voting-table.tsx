@@ -49,17 +49,20 @@ import {
   deleteVotingSession,
   resetVotingSessionVotes,
   toggleVotingSessionActive,
-} from "@/services/voting-service";
+} from "@/services/voting/voting-service";
 import { triggerStorageRefresh } from "@/hooks/use-mock-data";
 import { subscribeToStorage } from "@/services/mock-storage";
 import type { VotingSession, VotingSessionFormData } from "@/types";
 import { VotingSessionFormDialog } from "./voting-session-form-dialog";
 import { ActiveVotingChart } from "./active-voting-chart";
 import { Card, CardContent } from "@/components/ui/card";
+import { useVotingSessions } from "@/hooks/use-voting-sessions";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function AdminVotingTable() {
-  const [sessions, setSessions] = useState<VotingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { sessions, loading } = useVotingSessions();
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<VotingSession | null>(
     null,
@@ -69,33 +72,12 @@ export function AdminVotingTable() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  const fetchSessions = useCallback(async (options?: { silent?: boolean }) => {
-    if (!options?.silent) setLoading(true);
-    const result = await getVotingSessions();
-    if (result.success && result.data) {
-      setSessions(result.data);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchSessions();
-    // Keep the list in sync with any external storage change
-    // (e.g. the "Alapértelmezett adatok" reset), so the table and the
-    // live chart never disagree about which session is active.
-    const unsubscribe = subscribeToStorage(() => {
-      fetchSessions({ silent: true });
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, [fetchSessions]);
-
   const handleCreate = async (data: VotingSessionFormData) => {
     const result = await createVotingSession(data);
     if (result.success) {
       triggerStorageRefresh();
-      fetchSessions();
+
+      await queryClient.invalidateQueries({ queryKey: ["voting_sessions"] });
     }
     return result;
   };
@@ -108,8 +90,8 @@ export function AdminVotingTable() {
     if (result.success) {
       triggerStorageRefresh();
       setEditingSession(null);
-      // Re-fetch so the edited session is reflected immediately in the list.
-      fetchSessions();
+
+      await queryClient.invalidateQueries({ queryKey: ["voting_sessions"] });
     }
     return result;
   };
@@ -119,10 +101,13 @@ export function AdminVotingTable() {
 
     setIsDeleting(true);
     const result = await deleteVotingSession(deleteId);
+
     if (result.success) {
       triggerStorageRefresh();
-      fetchSessions();
+
+      await queryClient.invalidateQueries({ queryKey: ["voting_sessions"] });
     }
+
     setIsDeleting(false);
     setDeleteId(null);
   };
@@ -134,7 +119,8 @@ export function AdminVotingTable() {
     const result = await resetVotingSessionVotes(resetId);
     if (result.success) {
       triggerStorageRefresh();
-      fetchSessions();
+
+      await queryClient.invalidateQueries({ queryKey: ["voting_sessions"] });
     }
     setIsResetting(false);
     setResetId(null);
@@ -144,7 +130,8 @@ export function AdminVotingTable() {
     const result = await toggleVotingSessionActive(sessionId);
     if (result.success) {
       triggerStorageRefresh();
-      fetchSessions();
+
+      await queryClient.invalidateQueries({ queryKey: ["voting_sessions"] });
     }
   };
 

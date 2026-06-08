@@ -1,28 +1,42 @@
-'use client';
+"use client";
 
-import { useMemo, useCallback } from 'react';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell, LabelList } from 'recharts';
-import { Activity, Trophy, Users, BarChart3 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useMemo, useCallback } from "react";
+import {
+  Bar,
+  BarChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Cell,
+  LabelList,
+} from "recharts";
+import { Activity, Trophy, Users, BarChart3 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/components/ui/chart';
-import { useActiveVotingSession } from '@/hooks/use-voting-sessions';
+} from "@/components/ui/chart";
+import { useActiveVotingSession } from "@/hooks/use-voting-sessions";
 
 const BAR_COLORS = [
-  'var(--color-chart-1)',
-  'var(--color-chart-2)',
-  'var(--color-chart-3)',
-  'var(--color-chart-4)',
-  'var(--color-chart-5)',
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
 ];
 
 export function ActiveVotingChart() {
-  const activeSession = useActiveVotingSession();
+  const { activeSession, loading } = useActiveVotingSession();
 
   const { chartData, totalVotes, leaderId } = useMemo(() => {
     if (!activeSession) {
@@ -42,18 +56,24 @@ export function ActiveVotingChart() {
     // Highest vote count is the leader (only when at least one vote exists).
     let leader: string | null = null;
     if (total > 0) {
-      leader = data.reduce((best, cur) => (cur.votes > best.votes ? cur : best)).id;
+      leader = data.reduce((best, cur) =>
+        cur.votes > best.votes ? cur : best,
+      ).id;
     }
 
     return { chartData: data, totalVotes: total, leaderId: leader };
   }, [activeSession]);
 
   const chartConfig = useMemo<ChartConfig>(() => {
-    return { votes: { label: 'Szavazat' } } satisfies ChartConfig;
+    return { votes: { label: "Szavazat" } } satisfies ChartConfig;
   }, []);
 
   const renderTooltip = useCallback(
-    (value: any, _name: any, item: any) => (
+    (
+      value: any,
+      _name: any,
+      item: any, // Hozzáadva a nyitó zárójel
+    ) => (
       <div className="flex w-full items-center justify-between gap-3">
         <span
           className="size-2.5 shrink-0 rounded-[2px]"
@@ -65,7 +85,7 @@ export function ActiveVotingChart() {
         </span>
       </div>
     ),
-    [], // Does not depend on any external value, so the reference stays stable.
+    [],
   );
 
   // Recharts v3 keeps layout props (margin, axis config, etc.) in an internal
@@ -73,7 +93,10 @@ export function ActiveVotingChart() {
   // function would be a new reference each render, causing notifyNestedSubs to
   // fire endlessly — the "Maximum update depth exceeded" loop (React #185).
   // Every prop below is therefore memoized to a single stable reference.
-  const chartMargin = useMemo(() => ({ left: 8, right: 40, top: 4, bottom: 4 }), []);
+  const chartMargin = useMemo(
+    () => ({ left: 8, right: 40, top: 4, bottom: 4 }),
+    [],
+  );
 
   // Stable tick style object for the YAxis (inline objects re-register the axis).
   const yAxisTick = useMemo(() => ({ fontSize: 12 }), []);
@@ -92,6 +115,10 @@ export function ActiveVotingChart() {
     [renderTooltip],
   );
 
+  if (loading) {
+    return <div>Betöltés...</div>; // Vagy egy Skeleton komponens
+  }
+
   // No active session — make this state explicit for the admin.
   if (!activeSession) {
     return (
@@ -100,7 +127,8 @@ export function ActiveVotingChart() {
           <BarChart3 className="size-8 text-muted-foreground" />
           <p className="font-medium">Nincs aktív szavazás</p>
           <p className="max-w-sm text-sm text-muted-foreground text-balance">
-            Aktiválj egy szavazást a lenti listából, és itt valós időben látod majd az aktuális állását.
+            Aktiválj egy szavazást a lenti listából, és itt valós időben látod
+            majd az aktuális állását.
           </p>
         </CardContent>
       </Card>
@@ -122,7 +150,9 @@ export function ActiveVotingChart() {
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-chart-1 opacity-60" />
                 <span className="relative inline-flex size-2.5 rounded-full bg-chart-1" />
               </span>
-              <span className="truncate">{activeSession.title || 'Aktív szavazás'}</span>
+              <span className="truncate">
+                {activeSession.title || "Aktív szavazás"}
+              </span>
             </CardTitle>
             <CardDescription className="mt-1 flex items-center gap-1.5">
               <Activity className="size-3.5" />
@@ -151,11 +181,17 @@ export function ActiveVotingChart() {
                 <Trophy className="size-4 shrink-0 text-chart-2" />
                 <span className="text-muted-foreground">Jelenleg vezet:</span>
                 <span className="truncate font-semibold">{leader.label}</span>
-                <span className="ml-auto shrink-0 font-semibold tabular-nums">{leader.percentage}%</span>
+                <span className="ml-auto shrink-0 font-semibold tabular-nums">
+                  {leader.percentage}%
+                </span>
               </div>
             )}
 
-            <ChartContainer config={chartConfig} style={chartStyle} className="w-full">
+            <ChartContainer
+              config={chartConfig}
+              style={chartStyle}
+              className="w-full"
+            >
               <BarChart
                 accessibilityLayer
                 data={chartData}

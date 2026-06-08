@@ -14,7 +14,7 @@ import {
   PowerOff,
 } from "lucide-react";
 import { useQuizzes } from "@/hooks/use-quizzes";
-import { deleteQuiz, toggleQuizActive } from "@/services/quiz-service";
+import { deleteQuiz, toggleQuizActive } from "@/services/quiz/quiz-service";
 import { triggerStorageRefresh } from "@/hooks/use-mock-data";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,8 +40,10 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { QuizFormDialog } from "./quiz-form-dialog";
 import type { Quiz } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function AdminQuizTable() {
+  const queryClient = useQueryClient();
   const { quizzes, loading, error } = useQuizzes(false);
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [deletingQuiz, setDeletingQuiz] = useState<Quiz | null>(null);
@@ -50,20 +52,22 @@ export function AdminQuizTable() {
 
   const handleToggleActive = async (quizId: string) => {
     const result = await toggleQuizActive(quizId);
-    if (!result.success) {
-      console.error(result.error);
+    if (result.success) {
+      // Frissítés kényszerítése
+      await queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     }
   };
+
   const handleDelete = async () => {
     if (!deletingQuiz) return;
-
     setIsDeleting(true);
     const result = await deleteQuiz(deletingQuiz.id);
     setIsDeleting(false);
 
     if (result.success) {
       setDeletingQuiz(null);
-      // A useQuizzes hook a háttérben már megkapta a frissítést a Firebase-től.
+      // Frissítés kényszerítése, hogy eltűnjön a listából
+      await queryClient.invalidateQueries({ queryKey: ["quizzes"] });
     }
   };
 

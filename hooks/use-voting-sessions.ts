@@ -1,60 +1,25 @@
-'use client';
+"use client";
 
-import { useSyncExternalStore, useMemo } from 'react';
-import {
-  subscribeToStorage,
-  getLocalVotingSessions,
-} from '@/services/mock-storage';
-import type { VotingSession } from '@/types';
+import { useQuery } from "@tanstack/react-query";
+import { fetchVotingSessionsDirectly } from "@/services/voting/voting-service";
 
-// Cache the snapshot so useSyncExternalStore receives a stable reference
-// between renders. getLocalVotingSessions() builds a fresh array on every
-// call, which would otherwise trigger an infinite render loop. We only
-// produce a new reference when the serialized data actually changes.
-let cachedKey = '';
-let cachedSessions: VotingSession[] = [];
+export function useVotingSessions() {
+  const {
+    data: sessions = [],
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ["voting_sessions"],
+    queryFn: fetchVotingSessionsDirectly,
+    staleTime: 1000 * 60 * 60 * 24, // 24 óra cache
+    gcTime: 1000 * 60 * 60 * 24,
+  });
 
-function getSessionsSnapshot(): VotingSession[] {
-  if (typeof window === 'undefined') return cachedSessions;
-
-  const sessions = getLocalVotingSessions();
-  const key = JSON.stringify(sessions);
-
-  if (key !== cachedKey) {
-    cachedKey = key;
-    cachedSessions = sessions;
-  }
-
-  return cachedSessions;
+  return { sessions, loading, error };
 }
 
-function getServerSnapshot(): VotingSession[] {
-  return [];
-}
-
-/**
- * Reactive list of all voting sessions, kept in sync with localStorage.
- * Re-renders automatically whenever a session is created, edited,
- * activated/deactivated, voted on, or reset.
- */
-export function useVotingSessions(): VotingSession[] {
-  return useSyncExternalStore(
-    subscribeToStorage,
-    getSessionsSnapshot,
-    getServerSnapshot
-  );
-}
-
-/**
- * Reactive single active voting session (or null). Updates live whenever
- * a different session becomes active.
- */
-export function useActiveVotingSession(): VotingSession | null {
-  const sessions = useVotingSessions();
-
-  const activeSession = useMemo(() => {
-    return sessions.find(s => s.isActive) ?? null;
-  }, [sessions]); // Függőség: csak akkor változik, ha a sessions változik
-
-  return activeSession;
+export function useActiveVotingSession() {
+  const { sessions, loading } = useVotingSessions();
+  const activeSession = sessions.find((s) => s.isActive) ?? null;
+  return { activeSession, loading };
 }
