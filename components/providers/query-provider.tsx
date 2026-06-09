@@ -77,7 +77,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister }}
+      persistOptions={{ persister: persister as any }}
       onSuccess={() => {
         // Itt is lehetne logolni a sikeres hidratációt
       }}
