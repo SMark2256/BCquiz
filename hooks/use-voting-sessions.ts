@@ -3,19 +3,25 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchVotingSessionsDirectly } from "@/services/voting/voting-service";
 
-export function useVotingSessions() {
+export const VOTING_SESSION_STALE_TIME = 10000;
+
+export function useVotingSessions(
+  staleTime: number = VOTING_SESSION_STALE_TIME,
+) {
   const {
     data: sessions = [],
-    isLoading: loading,
+    isLoading,
+    isFetching,
     error,
   } = useQuery({
     queryKey: ["voting_sessions"],
     queryFn: fetchVotingSessionsDirectly,
-    staleTime: 1000 * 60 * 10, // 10 perc
-    gcTime: 1000 * 60 * 60 * 24,
+    staleTime,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
-  return { sessions, loading, error };
+  return { sessions, loading: isLoading, isFetching, error };
 }
 
 export function useActiveVotingSession() {

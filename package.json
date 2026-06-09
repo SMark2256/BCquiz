@@ -21,6 +21,7 @@
     "date-fns": "^4.3.0",
     "firebase": "^12.14.0",
     "framer-motion": "^12.40.0",
+    "localforage": "^1.10.0",
     "lucide-react": "^1.17.0",
     "next": "16.2.6",
     "prettier": "^3.8.3",

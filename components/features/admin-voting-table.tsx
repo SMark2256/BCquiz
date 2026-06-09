@@ -61,7 +61,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export function AdminVotingTable() {
   const queryClient = useQueryClient();
-  const { sessions, loading } = useVotingSessions();
+  const { sessions, loading } = useVotingSessions(0);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<VotingSession | null>(

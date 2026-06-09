@@ -1,7 +1,9 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
-import { getAuth, Auth } from "firebase/auth";
+import { getAuth, Auth, signInAnonymously } from "firebase/auth";
 
 // Firebase configuration - these should be set in environment variables
 const firebaseConfig = {
@@ -43,16 +45,39 @@ export const resetQueryCount = () => {
   queryCount = 0;
 };
 
+export async function ensureAnonymousUser() {
+  const authInstance = getAuth();
+  if (!authInstance.currentUser) {
+    const userCredential = await signInAnonymously(authInstance);
+    return userCredential.user;
+  }
+  return authInstance.currentUser;
+}
+
 function initializeFirebase() {
   if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
   } else {
     app = getApps()[0];
   }
+  let analytics;
+  if (typeof window !== "undefined") {
+    analytics = getAnalytics(app);
+  }
+
+  if (typeof window !== "undefined") {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(
+        process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!,
+      ),
+      isTokenAutoRefreshEnabled: true,
+    });
+  }
+
   db = getFirestore(app);
   storage = getStorage(app);
   authInstance = getAuth(app);
-  return { app, db, storage, authInstance };
+  return { app, db, storage, authInstance, analytics };
 }
 
 // Check if Firebase is configured

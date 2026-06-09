@@ -19,24 +19,66 @@ export function QrGenerator() {
   const [url, setUrl] = useState("https://barcraft-corvin.hu");
   const [size, setSize] = useState<string>("512");
   const [filename, setFilename] = useState("qr-kod");
-  const [borderRadius, setBorderRadius] = useState<number>(50); // Új állapot a lekerekítéshez
+  const [borderRadius, setBorderRadius] = useState<number>(30); // Új állapot a lekerekítéshez
   const qrRef = useRef<HTMLDivElement>(null);
 
   const downloadQRCode = () => {
     const canvas = qrRef.current?.querySelector("canvas");
     if (canvas) {
-      // Itt fontos megjegyezni, hogy a canvas mentésekor a lekerekítés
-      // csak a CSS-ben látszik. Ha a mentett képen is szeretnéd a lekerekítést,
-      // ahhoz egy komplexebb canvas rajzolás kellene, de az előnézethez ez a megoldás tökéletes.
-      const pngUrl = canvas
-        .toDataURL("image/png")
-        .replace("image/png", "image/octet-stream");
-      const downloadLink = document.createElement("a");
-      downloadLink.href = pngUrl;
-      downloadLink.download = `${filename || "qr-kod"}.png`;
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
+      const targetSize = parseInt(size);
+
+      // Új, ideiglenes canvas létrehozása a letöltéshez
+      const downloadCanvas = document.createElement("canvas");
+      downloadCanvas.width = targetSize;
+      downloadCanvas.height = targetSize;
+      const ctx = downloadCanvas.getContext("2d");
+
+      if (ctx) {
+        // A borderRadius arányosítása a letöltési mérethez
+        // Mivel az előnézet fix 200px-es, a borderRadius-t ehhez képest arányosítjuk
+        const radiusRatio = borderRadius / 200;
+        const actualRadius = targetSize * radiusRatio;
+
+        // Lekerekített útvonal rajzolása
+        ctx.beginPath();
+        ctx.moveTo(actualRadius, 0);
+        ctx.lineTo(targetSize - actualRadius, 0);
+        ctx.quadraticCurveTo(targetSize, 0, targetSize, actualRadius);
+        ctx.lineTo(targetSize, targetSize - actualRadius);
+        ctx.quadraticCurveTo(
+          targetSize,
+          targetSize,
+          targetSize - actualRadius,
+          targetSize,
+        );
+        ctx.lineTo(actualRadius, targetSize);
+        ctx.quadraticCurveTo(0, targetSize, 0, targetSize - actualRadius);
+        ctx.lineTo(0, actualRadius);
+        ctx.quadraticCurveTo(0, 0, actualRadius, 0);
+        ctx.closePath();
+
+        // Fehér háttér kitöltése
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fill();
+
+        // Maszkolás alkalmazása, hogy a QR kód se lógjon ki
+        ctx.clip();
+
+        // Az eredeti QR kód rárajzolása az új canvasra
+        ctx.drawImage(canvas, 0, 0, targetSize, targetSize);
+
+        // Mentés
+        const pngUrl = downloadCanvas
+          .toDataURL("image/png")
+          .replace("image/png", "image/octet-stream");
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = pngUrl;
+        downloadLink.download = `${filename || "qr-kod"}.png`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+      }
     }
   };
 
@@ -66,7 +108,10 @@ export function QrGenerator() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="size">Felbontás (px)</Label>
-                <Select value={size} onValueChange={setSize}>
+                <Select
+                  value={size}
+                  onValueChange={(val) => val && setSize(val)}
+                >
                   <SelectTrigger size="lg">
                     <SelectValue />
                   </SelectTrigger>
@@ -107,7 +152,7 @@ export function QrGenerator() {
           <div className="relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted p-6 sm:p-2 bg-transparent min-h-75">
             <div
               ref={qrRef}
-              className="p-4 bg-white transition-all duration-200 ease-in-out shadow-lg"
+              className="p-1 bg-white transition-all duration-200 ease-in-out shadow-lg"
               style={{ borderRadius: `${borderRadius}px`, overflow: "hidden" }}
             >
               <QRCodeCanvas

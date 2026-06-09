@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface VoteTopicCardProps {
   topic: VoteTopic;
   onVote: (topicId: string) => Promise<{ success: boolean; error?: string }>;
-  hasVoted: boolean;
+  hasVoted: boolean | undefined;
   hasVotedAny: boolean;
 }
 

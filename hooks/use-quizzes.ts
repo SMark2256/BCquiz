@@ -3,22 +3,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchQuizzesDirectly } from "@/services/quiz/quiz-service";
 
-export function useQuizzes(upcomingOnly: boolean = false) {
+const QUIZZES_STALE_TIME = 1000 * 60 * 5;
+
+export function useQuizzes(
+  upcomingOnly: boolean = false,
+  staleTime: number = QUIZZES_STALE_TIME,
+) {
   const {
     data: quizzes = [],
     isLoading: loading,
+    isFetching: fetching,
+    status,
     error,
     refetch,
   } = useQuery({
     queryKey: ["quizzes", { upcomingOnly }],
     queryFn: () => fetchQuizzesDirectly(upcomingOnly),
-    staleTime: 1000 * 60 * 10, // 10 percig frissnek tekintjük
-    gcTime: 1000 * 60 * 60 * 24, // 24 óra: eddig tartja meg a memóriában
+    staleTime,
+    gcTime: QUIZZES_STALE_TIME,
+    refetchOnWindowFocus: false,
   });
 
   return {
     quizzes,
     loading,
+    fetching,
+    status,
     error:
       error instanceof Error ? error.message : error ? "Hiba történt" : null,
     refetch,

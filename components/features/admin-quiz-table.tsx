@@ -44,7 +44,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export function AdminQuizTable() {
   const queryClient = useQueryClient();
-  const { quizzes, loading, error } = useQuizzes(false);
+  const { quizzes, loading, error } = useQuizzes(false, 0);
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [deletingQuiz, setDeletingQuiz] = useState<Quiz | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
