@@ -12,7 +12,7 @@ export function useQuizzes(upcomingOnly: boolean = false) {
   } = useQuery({
     queryKey: ["quizzes", { upcomingOnly }],
     queryFn: () => fetchQuizzesDirectly(upcomingOnly),
-    staleTime: 1000 * 60 * 60 * 24, // 24 óra: eddig nem indít új kérést, ha van adat
+    staleTime: 1000 * 60 * 10, // 10 percig frissnek tekintjük
     gcTime: 1000 * 60 * 60 * 24, // 24 óra: eddig tartja meg a memóriában
   });
 

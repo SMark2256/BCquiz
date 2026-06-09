@@ -6,6 +6,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { Quiz } from "@/types";
+import { ensureDate } from "@/lib/utils";
 
 export const quizConverter: FirestoreDataConverter<Quiz> = {
   toFirestore: (quiz: Quiz) => {
@@ -33,7 +34,7 @@ export const quizConverter: FirestoreDataConverter<Quiz> = {
     return {
       id: snapshot.id,
       ...data,
-      date: data.date?.toDate() || new Date(),
+      date: ensureDate(data.date),
       createdAt: data.createdAt?.toDate() || new Date(),
       updatedAt: data.updatedAt?.toDate() || new Date(),
     } as Quiz;

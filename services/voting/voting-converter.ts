@@ -6,6 +6,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { VotingSession } from "@/types";
+import { ensureDate } from "@/lib/utils";
 
 export const votingConverter: FirestoreDataConverter<VotingSession> = {
   toFirestore: (session: VotingSession) => {
@@ -28,8 +29,8 @@ export const votingConverter: FirestoreDataConverter<VotingSession> = {
     return {
       id: snapshot.id,
       ...data,
-      createdAt: data.createdAt?.toDate() || new Date(),
-      updatedAt: data.updatedAt?.toDate() || new Date(),
+      createdAt: ensureDate(data.createdAt),
+      updatedAt: ensureDate(data.updatedAt),
     } as VotingSession;
   },
 };

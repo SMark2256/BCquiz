@@ -11,7 +11,7 @@ export function useVotingSessions() {
   } = useQuery({
     queryKey: ["voting_sessions"],
     queryFn: fetchVotingSessionsDirectly,
-    staleTime: 1000 * 60 * 60 * 24, // 24 óra cache
+    staleTime: 1000 * 60 * 10, // 10 perc
     gcTime: 1000 * 60 * 60 * 24,
   });
 

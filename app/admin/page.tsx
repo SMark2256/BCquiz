@@ -22,9 +22,11 @@ import {
   ShieldAlert,
   LogIn,
   LogOut,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { QrGenerator } from "@/components/features/qr-generator";
 
 function AdminContent() {
   const { user, isAdmin, loading, login, logout } = useAuth();
@@ -63,18 +65,20 @@ function AdminContent() {
     <div className="min-h-screen bg-background">
       {/* Admin Header */}
       <header className="border-b border-border bg-secondary/30">
-        <div className="mx-auto flex h-12 max-w-5xl items-center justify-between px-3 sm:h-14 sm:px-4">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-3 sm:h-16 sm:px-4">
           <div className="flex items-center gap-2 sm:gap-4">
             <Link
               href="/"
               className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground sm:gap-2 sm:text-sm"
             >
-              <ArrowLeft className="size-3 sm:size-4" />
-              <span className="hidden xs:inline">Vissza a főoldalra</span>
-              <span className="xs:hidden">Vissza</span>
+              <ArrowLeft className="size-4 scale-120" />
+              <span className="hidden text-base xs:inline">
+                Vissza a főoldalra
+              </span>
+              <span className="text-base xs:hidden">Vissza</span>
             </Link>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex flex-1 justify-center items-center gap-2 sm:gap-3">
             {usingMockStorage ? (
               <Badge
                 variant="outline"
@@ -88,20 +92,24 @@ function AdminContent() {
                 variant="outline"
                 className="gap-1 border-amber-500/50 bg-amber-500/10 px-1.5 py-0.5 text-xs text-amber-600 sm:gap-1.5 sm:px-2"
               >
-                <Database className="size-3" />
+                <Database className="size-5 sm:size-4" />
                 <span className="hidden sm:inline">Felhő tárolás</span>
               </Badge>
             )}
-            <h1 className="text-sm font-bold sm:text-lg">Admin</h1>
+            <h1 className="text-card-foreground text-base font-bold sm:text-lg">
+              Admin
+            </h1>
             <AdminThemeToggle />
+          </div>
+          <div className="flex items-center gap-2 h-full sm:gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={logout}
-              className="size-8 text-muted-foreground hover:text-destructive"
+              className="size-10 p-0 text-muted-foreground hover:text-destructive"
               title="Kijelentkezés"
             >
-              <LogOut className="size-5" />
+              <LogOut className="size-6 scale-120" />
             </Button>
           </div>
         </div>
@@ -148,21 +156,27 @@ function AdminContent() {
         )}
 
         <Tabs defaultValue="quizzes">
-          <TabsList className="mb-4 w-full sm:mb-6 sm:w-auto dark:bg-secondary/60">
+          <TabsList className="mb-10 w-full sm:mb-10 sm:w-auto dark:bg-secondary/60">
             <TabsTrigger
               value="quizzes"
-              className="flex flex-1 items-center justify-center gap-2 py-3 text-base sm:flex-initial sm:py-1.5 dark:text-muted-foreground dark:hover:text-foreground dark:data-[active]:bg-secondary dark:data-[active]:text-secondary-foreground dark:data-[active]:border-border"
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 py-6 sm:py-6 text-base sm:flex-initial dark:text-muted-foreground dark:hover:text-foreground dark:data-active:bg-secondary dark:data-active:text-secondary-foreground dark:data-active:border-border"
             >
-              <CalendarDays className="size-5 sm:size-4" />
-              <span>Kvízek</span>
+              <CalendarDays className="size-7 sm:size-4" />
+              <span className="hidden sm:flex">Kvízek</span>
             </TabsTrigger>
             <TabsTrigger
               value="voting"
-              className="flex flex-1 items-center gap-1.5 text-md sm:flex-initial sm:gap-2 sm:text-sm dark:text-muted-foreground dark:hover:text-foreground dark:data-[active]:bg-secondary dark:data-[active]:text-secondary-foreground dark:data-[active]:border-border"
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 py-6 sm:py-6 text-base sm:flex-initial dark:text-muted-foreground dark:hover:text-foreground dark:data-active:bg-secondary dark:data-active:text-secondary-foreground dark:data-active:border-border"
             >
-              <Vote className="size-5 sm:size-4" />
-              <span className="hidden xs:inline">Szavazási Témák</span>
-              <span className="xs:hidden">Szavazás</span>
+              <Vote className="size-7 sm:size-4 scale-110" />
+              <span className="hidden sm:flex">Szavazási Témák</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="tools"
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 py-6 sm:py-6 text-base sm:flex-initial dark:text-muted-foreground dark:hover:text-foreground dark:data-active:bg-secondary dark:data-active:text-secondary-foreground dark:data-active:border-border"
+            >
+              <QrCode className="size-7 sm:size-4" />
+              <span className="hidden sm:flex">Eszközök</span>
             </TabsTrigger>
           </TabsList>
 
@@ -172,6 +186,10 @@ function AdminContent() {
 
           <TabsContent value="voting">
             <AdminVotingTable />
+          </TabsContent>
+
+          <TabsContent value="tools">
+            <QrGenerator />
           </TabsContent>
         </Tabs>
       </div>

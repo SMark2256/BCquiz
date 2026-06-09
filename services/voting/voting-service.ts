@@ -119,7 +119,7 @@ export async function getActiveVotingSession(): Promise<
 export async function checkUserVoted(sessionId: string, fingerprint: string) {
   const voteDocId = `${sessionId}_${fingerprint}`;
   const voteRef = doc(firestore, "votes", voteDocId);
-  const snap = await getDoc(voteRef);
+  const snap = await trackQuery("checkUserVoted", () => getDoc(voteRef));
 
   if (snap.exists()) {
     return { hasVoted: true, data: snap.data() };
@@ -139,7 +139,7 @@ export async function getVotingSession(
 
   try {
     const docRef = doc(firestore, COLLECTION_NAME, id);
-    const snapshot = await getDoc(docRef);
+    const snapshot = await trackQuery("getVotingSession", () => getDoc(docRef));
     if (snapshot.exists()) {
       return {
         success: true,
@@ -390,7 +390,10 @@ export async function resetVotingSessionVotes(
 
 // Deactivate every session in Firestore, optionally skipping one id.
 async function deactivateAllSessions(exceptId?: string): Promise<void> {
-  const snapshot = await getDocs(collection(firestore, COLLECTION_NAME));
+  const snapshot = await trackQuery("deactivateAllSessions", () =>
+    getDocs(collection(firestore, COLLECTION_NAME)),
+  );
+
   await Promise.all(
     snapshot.docs
       .filter((d) => d.id !== exceptId && (d.data().isActive as boolean))
@@ -433,6 +436,8 @@ async function deactivateAllSessions(exceptId?: string): Promise<void> {
  */
 export async function fetchVotingSessionsDirectly() {
   const q = query(votingCollection, orderBy("createdAt", "desc"));
-  const snapshot = await getDocs(q);
+  const snapshot = await trackQuery("fetchVotingSessionsDirectly", () =>
+    getDocs(q),
+  );
   return snapshot.docs.map((doc) => doc.data());
 }
