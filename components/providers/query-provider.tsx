@@ -38,40 +38,6 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  useEffect(() => {
-    setMounted(true);
-
-    // Logolás csak egyszer, az igazi betöltődés után
-    const logCacheStatus = () => {
-      const rawCache = localStorage.getItem(CACHE_KEY);
-      if (!rawCache) return;
-
-      try {
-        const cache = JSON.parse(rawCache);
-        const now = Date.now();
-        console.groupCollapsed("🕒 Cache Időzítés Ellenőrzése (Részletek)");
-        cache.clientState.queries.forEach((query: any) => {
-          const updatedAt = query.state.dataUpdatedAt;
-          if (updatedAt > 0) {
-            const timeLeftMs = STALE_TIME - (now - updatedAt);
-            if (timeLeftMs > 0) {
-              const min = Math.floor(timeLeftMs / 60000);
-              const sec = Math.floor((timeLeftMs % 60000) / 1000);
-              console.log(
-                `✅ ${JSON.stringify(query.queryKey)}: ${min}p ${sec}mp`,
-              );
-            }
-          }
-        });
-        console.groupEnd();
-      } catch (e) {}
-    };
-
-    // Kis késleltetés, hogy a hidratáció biztosan befejeződjön
-    const timer = setTimeout(logCacheStatus, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Ha még nem mountolódott, akkor is adjuk vissza a gyerekeit egy alap Provider-ben,
   // hogy elkerüljük a teljes alkalmazás villogását/re-mountolását
   return (

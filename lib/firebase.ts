@@ -28,9 +28,9 @@ export async function trackQuery<T>(
   queryFn: () => Promise<T>,
 ): Promise<T> {
   queryCount++;
-  console.log(
-    `[Firebase Query] #${queryCount} | ${label} | Idő: ${new Date().toLocaleTimeString()}`,
-  );
+  // console.log(
+  //   `[Firebase Query] #${queryCount} | ${label} | Idő: ${new Date().toLocaleTimeString()}`,
+  // );
 
   try {
     const result = await queryFn();
