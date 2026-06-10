@@ -55,11 +55,8 @@ export async function ensureAnonymousUser() {
 }
 
 function initializeFirebase() {
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApps()[0];
-  }
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+
   let analytics;
   if (typeof window !== "undefined") {
     analytics = getAnalytics(app);
