@@ -27,6 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { QrGenerator } from "@/components/features/qr-generator";
+import { FadeIn, ScaleIn, BlurIn } from "@/components/ui/motion";
 
 function AdminContent() {
   const { user, isAdmin, loading, login, logout } = useAuth();
@@ -45,18 +46,20 @@ function AdminContent() {
   if (!user || !isAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
-        <div className="mb-6 rounded-full bg-primary/10 p-6">
-          <ShieldAlert className="size-12 text-primary" />
-        </div>
-        <h1 className="mb-2 text-2xl font-bold">Adminisztrációs Felület</h1>
-        <p className="mb-8 max-w-sm text-muted-foreground">
-          A tartalom eléréséhez be kell jelentkezned egy engedélyezett Google
-          fiókkal.
-        </p>
-        <Button onClick={login} size="lg" className="gap-2">
-          <LogIn className="size-5" />
-          Bejelentkezés Google fiókkal
-        </Button>
+        <ScaleIn className="flex flex-col items-center">
+          <div className="mb-6 rounded-full bg-primary/10 p-6">
+            <ShieldAlert className="size-12 text-primary" />
+          </div>
+          <h1 className="mb-2 text-2xl font-bold">Adminisztrációs Felület</h1>
+          <p className="mb-8 max-w-sm text-muted-foreground">
+            A tartalom eléréséhez be kell jelentkezned egy engedélyezett Google
+            fiókkal.
+          </p>
+          <Button onClick={login} size="lg" className="gap-2">
+            <LogIn className="size-5" />
+            Bejelentkezés Google fiókkal
+          </Button>
+        </ScaleIn>
       </div>
     );
   }
@@ -116,14 +119,14 @@ function AdminContent() {
       </header>
 
       <div className="mx-auto max-w-5xl px-3 py-4 sm:px-4 sm:py-8">
-        <div className="mb-4 sm:mb-8">
+        <FadeIn direction="up" className="mb-4 sm:mb-8">
           <h2 className="text-xl font-bold tracking-tight sm:text-3xl dark:text-card-foreground">
             Kvízestek Kezelése
           </h2>
           <p className="text-sm text-muted-foreground sm:text-base">
             Kvízek, események és szavazási témák kezelése.
           </p>
-        </div>
+        </FadeIn>
 
         {usingMockStorage && (
           <Alert className="flex mb-4 border-amber-500/50 bg-amber-500/10 sm:mb-6">
@@ -181,15 +184,21 @@ function AdminContent() {
           </TabsList>
 
           <TabsContent value="quizzes">
-            <AdminQuizTable />
+            <BlurIn>
+              <AdminQuizTable />
+            </BlurIn>
           </TabsContent>
 
           <TabsContent value="voting">
-            <AdminVotingTable />
+            <BlurIn>
+              <AdminVotingTable />
+            </BlurIn>
           </TabsContent>
 
           <TabsContent value="tools">
-            <QrGenerator />
+            <BlurIn>
+              <QrGenerator />
+            </BlurIn>
           </TabsContent>
         </Tabs>
       </div>

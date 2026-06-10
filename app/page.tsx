@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Divider } from "@/components/ui/divider";
 import MythicText from "@/components/ui/mythic-text";
 import MythicIcon from "@/components/ui/mythic-icon";
+import { FadeIn, BlurIn } from "@/components/ui/motion";
 
 
 export default function Home() {
@@ -47,12 +48,15 @@ export default function Home() {
                 <Divider text="Szavazás"/>
 
                 {/* Voting Section */ }
-                <section className="mb-8 sm:mb-10">
-                    <VotingWidget/>
-                </section>
+                <FadeIn whileInView direction="up" className="mb-8 sm:mb-10">
+                    <section>
+                        <VotingWidget/>
+                    </section>
+                </FadeIn>
 
                 {/* Info Section */ }
-                <section className="rounded-lg border-2 border-white/10 bg-foreground p-4 text-background sm:p-6">
+                <BlurIn whileInView>
+                    <section className="rounded-lg border-2 border-white/10 bg-foreground p-4 text-background sm:p-6">
                     <div className="flex flex-col gap-3 text-center sm:gap-4">
                         <div>
                             <p className="text-xs font-medium uppercase tracking-wider opacity-70">
@@ -127,7 +131,8 @@ export default function Home() {
                             </div>
                         </div>
                     </div>
-                </section>
+                    </section>
+                </BlurIn>
             </div>
 
             {/* Footer */ }
