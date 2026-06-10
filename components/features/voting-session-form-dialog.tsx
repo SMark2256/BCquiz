@@ -172,7 +172,7 @@ export function VotingSessionFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] sm:max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto pb-20 pt-10 sm:py-10">
-        <DialogHeader>
+        <DialogHeader className="pb-6 sm:pb-8">
           <DialogTitle>
             {isEditing ? "Szavazás Szerkesztése" : "Új Szavazás Létrehozása"}
           </DialogTitle>
@@ -241,7 +241,7 @@ export function VotingSessionFormDialog({
               </Button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-6 sm:space-y-4">
               {options.map((option, index) => (
                 <div
                   key={option.id || index}

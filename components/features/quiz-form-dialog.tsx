@@ -93,7 +93,7 @@ function QuizFormContent({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col max-w-full gap-3 sm:gap-4"
+      className="flex flex-col max-w-full gap-6 sm:gap-4"
     >
       <div className="flex flex-col gap-1.5 sm:gap-2">
         <Label className="text-xs sm:text-sm">Média keresése</Label>
@@ -139,7 +139,7 @@ function QuizFormContent({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="date">Dátum</Label>
           <Input
@@ -230,7 +230,7 @@ export function QuizFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto p-6 sm:p-10">
-        <DialogHeader>
+        <DialogHeader className="pb-6 sm:pb-8">
           <DialogTitle>
             {quiz ? "Kvíz Szerkesztése" : "Új Kvíz Létrehozása"}
           </DialogTitle>
