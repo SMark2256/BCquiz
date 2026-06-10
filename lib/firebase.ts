@@ -57,11 +57,6 @@ export async function ensureAnonymousUser() {
 function initializeFirebase() {
   app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
-  let analytics;
-  if (typeof window !== "undefined") {
-    analytics = getAnalytics(app);
-  }
-
   if (typeof window !== "undefined") {
     initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider(
@@ -69,6 +64,11 @@ function initializeFirebase() {
       ),
       isTokenAutoRefreshEnabled: true,
     });
+  }
+  
+  let analytics;
+  if (typeof window !== "undefined") {
+    analytics = getAnalytics(app);
   }
 
   db = getFirestore(app);
