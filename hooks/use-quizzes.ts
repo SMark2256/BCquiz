@@ -22,6 +22,7 @@ export function useQuizzes(
     staleTime,
     gcTime: QUIZZES_STALE_TIME,
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
   return {
