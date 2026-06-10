@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { requestMotionPermission } from "@/hooks/motion-permission";
 
 export default function MainLogo() {
   const [isSecret, setIsSecret] = useState<boolean>(false);
@@ -13,8 +14,8 @@ export default function MainLogo() {
   const upKeyTimer = useRef<NodeJS.Timeout | null>(null);
   const resetTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Kattintás logika (3 kattintás 1mp alatt)
-  const handleLogoClick = () => {
+  // 1. Kattintás logika (3 kattintás 1mp alatt) - MÓDOSÍTVA (async)
+  const handleLogoClick = async () => {
     if (isSecret) {
       router.push("/admin"); // Ha már titkos, kattintásra adminra dob
       return;
@@ -25,7 +26,14 @@ export default function MainLogo() {
     setClicks(newClicks);
 
     if (newClicks.length === 3) {
-      setClicksEnabled(true);
+      // ÚJ: Engedélykérés a 3. kattintásnál
+      const hasPermission = await requestMotionPermission();
+
+      if (hasPermission) {
+        setClicksEnabled(true);
+      } else {
+        setClicks([]); // Visszaállítjuk, ha elutasította
+      }
     }
   };
 
