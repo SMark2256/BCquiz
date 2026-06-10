@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -21,10 +21,23 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "KVIZESTEK - BarCraft Corvin",
   description:
-    "Kvízestek a BarCraft Corvinban. Teszteld a tudásod és szavazz a következő témákra!",
+    "Kvízestek a BarCraft Corvinban. Teszteld a tudásod és szavazz a következő kvízest témákra!",
   alternates: {
     canonical: "https://www.barcraft-corvin.hu",
   },
+  other: {
+    "preconnect-tmdb":
+      '<link rel="preconnect" href="https://image.tmdb.org" crossorigin="anonymous" />',
+    "preconnect-igdb":
+      '<link rel="preconnect" href="https://images.igdb.com" crossorigin="anonymous" />',
+  },
+};
+
+// A viewport beállításokat ide tedd külön
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -38,18 +51,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <Head>
-        <link
-          rel="preconnect"
-          href="https://image.tmdb.org"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preconnect"
-          href="https://images.igdb.com"
-          crossOrigin="anonymous"
-        />
-      </Head>
       <body
         className="min-h-full flex flex-col font-sans relative"
         suppressHydrationWarning
