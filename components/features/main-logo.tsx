@@ -72,16 +72,29 @@ export default function MainLogo() {
   useEffect(() => {
     if (!clicksEnabled || isSecret) return;
 
+    let lastUpdate = 0;
+    let x = 0,
+      y = 0,
+      z = 0,
+      lastX = 0,
+      lastY = 0,
+      lastZ = 0;
+
     const handleMotion = (event: DeviceMotionEvent) => {
-      const acc = event.accelerationIncludingGravity;
-      if (!acc) return;
-      // Küszöbérték: ha bármelyik irányban erőteljes mozgás van
-      if (
-        Math.abs(acc.x!) > 15 ||
-        Math.abs(acc.y!) > 15 ||
-        Math.abs(acc.z!) > 15
-      ) {
-        activateSecret();
+      const acc = event.acceleration; // Itt 'acceleration'-t használunk, nem a gravitációst
+      if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
+
+      const curTime = Date.now();
+      if (curTime - lastUpdate > 100) {
+        const diff = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ);
+        if (diff > 30) {
+          // Érzékenység állítása
+          activateSecret();
+        }
+        lastX = acc.x;
+        lastY = acc.y;
+        lastZ = acc.z;
+        lastUpdate = curTime;
       }
     };
 
@@ -115,7 +128,7 @@ export default function MainLogo() {
         alt="BC Quiz Logo"
         width={385}
         height={336}
-        className="header-logo h-48 sm:h-56"
+        className="header-logo h-48 sm:h-56 pointer-events-none"
         priority
       />
     </div>
