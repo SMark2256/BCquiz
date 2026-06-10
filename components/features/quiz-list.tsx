@@ -13,7 +13,7 @@ export function QuizList() {
   if (loading || fetching || status === "pending") {
     return (
       <div className="flex flex-col gap-4">
-        {[...Array(1)].map((_, i) => (
+        {[...Array(2)].map((_, i) => (
           <QuizCardSkeleton key={i} />
         ))}
       </div>
