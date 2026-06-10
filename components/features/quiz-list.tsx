@@ -5,6 +5,7 @@ import { QuizCard } from "./quiz-card";
 import { QuizCardSkeleton } from "./quiz-card-skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { StaggerContainer, StaggerItem } from "@/components/ui/motion";
 
 export function QuizList() {
   const { quizzes, loading, fetching, status, error } = useQuizzes(true);
@@ -38,10 +39,12 @@ export function QuizList() {
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-4">
+    <StaggerContainer className="flex flex-col gap-3 sm:gap-4">
       {quizzes.map((quiz) => (
-        <QuizCard key={quiz.id} quiz={quiz} />
+        <StaggerItem key={quiz.id}>
+          <QuizCard quiz={quiz} />
+        </StaggerItem>
       ))}
-    </div>
+    </StaggerContainer>
   );
 }
