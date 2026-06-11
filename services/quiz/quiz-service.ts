@@ -1,4 +1,4 @@
-﻿import {
+import {
   collection,
   doc,
   getDocs,
@@ -27,9 +27,10 @@ import type { Quiz, QuizFormData, ApiResponse } from "@/types";
 import { quizConverter } from "@/services/quiz/qui-converter";
 
 const COLLECTION_NAME = "quizzes";
-const quizCollection = collection(firestore, COLLECTION_NAME).withConverter(
-  quizConverter,
-);
+// Lazily build the collection ref so this module can be imported (e.g. during
+// SSR/prerender) even when Firestore isn't initialized yet.
+const getQuizCollection = () =>
+  collection(firestore, COLLECTION_NAME).withConverter(quizConverter);
 
 // Check if we should use local storage
 function shouldUseMockStorage(): boolean {
@@ -65,7 +66,7 @@ export async function getQuizzes(): Promise<ApiResponse<Quiz[]>> {
   }
 
   try {
-    const q = query(quizCollection, orderBy("date", "asc"));
+    const q = query(getQuizCollection(), orderBy("date", "asc"));
 
     const snapshot = await trackQuery("getQuizzes", () => getDocs(q));
 
@@ -137,7 +138,7 @@ export async function createQuiz(
   try {
     const now = new Date();
     // A quizCollection használata a manuális addDoc helyett
-    const docRef = await addDoc(quizCollection, {
+    const docRef = await addDoc(getQuizCollection(), {
       ...data,
       id: "", // A converter kezeli az ID-t
       createdAt: now,

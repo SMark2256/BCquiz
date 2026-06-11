@@ -36,9 +36,10 @@ import type {
 import { votingConverter } from "@/services/voting/voting-converter";
 
 const COLLECTION_NAME = "voting_sessions";
-const votingCollection = collection(firestore, COLLECTION_NAME).withConverter(
-  votingConverter,
-);
+// Lazily build the collection ref so this module is safe to import during
+// SSR/prerender even when Firestore isn't initialized yet.
+const getVotingCollection = () =>
+  collection(firestore, COLLECTION_NAME).withConverter(votingConverter);
 
 // Check if we should use local storage instead of Firebase.
 function shouldUseMockStorage(): boolean {
@@ -435,7 +436,7 @@ async function deactivateAllSessions(exceptId?: string): Promise<void> {
  * Lekéri az összes szavazást a Firebase-ből
  */
 export async function fetchVotingSessionsDirectly() {
-  const q = query(votingCollection, orderBy("createdAt", "desc"));
+  const q = query(getVotingCollection(), orderBy("createdAt", "desc"));
   const snapshot = await trackQuery("fetchVotingSessionsDirectly", () =>
     getDocs(q),
   );

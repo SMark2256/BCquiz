@@ -1,6 +1,4 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getAuth, Auth, signInAnonymously } from "firebase/auth";
@@ -54,27 +52,54 @@ export async function ensureAnonymousUser() {
   return authInstance.currentUser;
 }
 
-function initializeFirebase() {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+// App Check + Analytics are the heaviest part of the Firebase bundle
+// (reCAPTCHA alone adds 8+ long tasks on the main thread). They are NOT
+// required for the first paint, so we load them lazily once the browser is
+// idle. This keeps them out of the critical path and the initial JS bundle.
+let deferredServicesStarted = false;
 
-  if (typeof window !== "undefined") {
-    initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider(
-        process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!,
-      ),
-      isTokenAutoRefreshEnabled: true,
-    });
-  }
-  
-  let analytics;
-  if (typeof window !== "undefined") {
-    analytics = getAnalytics(app);
-  }
+function startDeferredFirebaseServices(firebaseApp: FirebaseApp) {
+  if (deferredServicesStarted || typeof window === "undefined") return;
+  deferredServicesStarted = true;
 
-  db = getFirestore(app);
-  storage = getStorage(app);
-  authInstance = getAuth(app);
-  return { app, db, storage, authInstance, analytics };
+  const run = async () => {
+    try {
+      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+      if (siteKey) {
+        const { initializeAppCheck, ReCaptchaV3Provider } = await import(
+          "firebase/app-check"
+        );
+        initializeAppCheck(firebaseApp, {
+          provider: new ReCaptchaV3Provider(siteKey),
+          isTokenAutoRefreshEnabled: true,
+        });
+      }
+
+      if (process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID) {
+        const { getAnalytics, isSupported } = await import(
+          "firebase/analytics"
+        );
+        if (await isSupported()) {
+          getAnalytics(firebaseApp);
+        }
+      }
+    } catch (error) {
+      console.error("[Firebase] Deferred services failed to start:", error);
+    }
+  };
+
+  const ric = (
+    window as Window &
+      typeof globalThis & {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      }
+  ).requestIdleCallback;
+
+  if (typeof ric === "function") {
+    ric(run, { timeout: 3000 });
+  } else {
+    setTimeout(run, 1500);
+  }
 }
 
 // Check if Firebase is configured
@@ -83,6 +108,30 @@ export function isFirebaseConfigured(): boolean {
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
   );
+}
+
+function initializeFirebase() {
+  // Bail out cleanly when env vars are missing (e.g. build-time prerender
+  // without secrets) instead of throwing and breaking the whole build.
+  if (!isFirebaseConfigured()) {
+    return {
+      app: undefined as unknown as FirebaseApp,
+      db: undefined as unknown as Firestore,
+      storage: undefined as unknown as FirebaseStorage,
+      authInstance: undefined as unknown as Auth,
+    };
+  }
+
+  app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+
+  db = getFirestore(app);
+  storage = getStorage(app);
+  authInstance = getAuth(app);
+
+  // Kick off heavy, non-critical services after the page is interactive.
+  startDeferredFirebaseServices(app);
+
+  return { app, db, storage, authInstance };
 }
 
 // Export initialized instances

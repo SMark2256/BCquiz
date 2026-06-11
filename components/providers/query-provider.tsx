@@ -1,16 +1,14 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 const STALE_TIME = 1000 * 60 * 10; // 10 perc
 const CACHE_KEY = "QUERY_CACHE";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-
   // A QueryClient-et csak egyszer hozzuk létre
   const [queryClient] = useState(
     () =>

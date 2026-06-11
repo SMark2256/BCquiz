@@ -3,7 +3,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Head from "next/head";
 import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
 
@@ -25,12 +24,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.barcraft-corvin.hu",
   },
-  other: {
-    "preconnect-tmdb":
-      '<link rel="preconnect" href="https://image.tmdb.org" crossorigin="anonymous" />',
-    "preconnect-igdb":
-      '<link rel="preconnect" href="https://images.igdb.com" crossorigin="anonymous" />',
-  },
 };
 
 // A viewport beállításokat ide tedd külön
@@ -51,6 +44,15 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/* Warm up connections to third-party origins used on first load. */}
+        <link rel="preconnect" href="https://firestore.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.google.com" />
+        <link rel="dns-prefetch" href="https://www.gstatic.com" />
+        <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://images.igdb.com" crossOrigin="anonymous" />
+      </head>
       <body
         className="min-h-full flex flex-col font-sans relative"
         suppressHydrationWarning
