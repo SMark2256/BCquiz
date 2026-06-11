@@ -9,15 +9,29 @@ export default function MainLogo() {
   const [isSecret, setIsSecret] = useState<boolean>(false);
   const [clicks, setClicks] = useState<number[]>([]);
   const [clicksEnabled, setClicksEnabled] = useState<boolean>(false);
+
+  // ÚJ: Külön kezeljük a PC és Mobil lejárati időket
+  const [deviceType, setDeviceType] = useState<"pc" | "mobile" | null>(null);
+
   const router = useRouter();
 
   const upKeyTimer = useRef<NodeJS.Timeout | null>(null);
   const resetTimer = useRef<NodeJS.Timeout | null>(null);
+  const windowTimer = useRef<NodeJS.Timeout | null>(null); // Időzítő az ablak bezárulásához
+  const lastShakeTime = useRef<number>(0);
+
+  // Eszköz típusának meghatározása (egyszerűsített módszer)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+      setDeviceType(isMobile ? "mobile" : "pc");
+    }
+  }, []);
 
   // 1. Kattintás logika (3 kattintás 1mp alatt)
   const handleLogoClick = async () => {
     if (isSecret) {
-      router.push("/admin"); // Ha már titkos, kattintásra adminra dob
+      router.push("/admin");
       return;
     }
 
@@ -26,13 +40,24 @@ export default function MainLogo() {
     setClicks(newClicks);
 
     if (newClicks.length === 3) {
-      // ÚJ: Engedélykérés a 3. kattintásnál
       const hasPermission = await requestMotionPermission();
 
       if (hasPermission) {
         setClicksEnabled(true);
+
+        // Ha elindult a clicksEnabled, takarítsuk el az esetleges régi időzítőt
+        if (windowTimer.current) clearTimeout(windowTimer.current);
+
+        // Időzítés beállítása az eszköz típusától függően
+        // Mobil: 2 másodperc (2000ms), PC: 5 másodperc (5000ms)
+        const timeoutDuration = deviceType === "mobile" ? 2000 : 5000;
+
+        windowTimer.current = setTimeout(() => {
+          setClicksEnabled(false);
+          setClicks([]);
+        }, timeoutDuration);
       } else {
-        setClicks([]); // Visszaállítjuk, ha elutasította
+        setClicks([]);
       }
     }
   };
@@ -40,18 +65,20 @@ export default function MainLogo() {
   // Segédfüggvény a titok aktiválására
   const activateSecret = () => {
     setIsSecret(true);
+    setClicksEnabled(false); // Aktiválás után kikapcsoljuk az ablakot
+    if (windowTimer.current) clearTimeout(windowTimer.current);
+
     const audio = new Audio("/Quests_Completed_sound.mp3");
     audio.play().catch(() => {});
     if (typeof navigator !== "undefined" && navigator.vibrate)
       navigator.vibrate(200);
   };
 
-  // 2. 10mp-es visszaállítás (ha isSecret = true)
+  // 2. 10mp-es visszaállítás (ha isSecret = true) -> Ha nem kattintanak rá, visszaáll az eredeti logo
   useEffect(() => {
     if (isSecret) {
       resetTimer.current = setTimeout(() => {
         setIsSecret(false);
-        setClicksEnabled(false);
         setClicks([]);
       }, 10000);
     }
@@ -60,13 +87,14 @@ export default function MainLogo() {
     };
   }, [isSecret]);
 
-  // 3. PC: Felfelé nyíl 2mp-ig
+  // 3. PC: Felfelé nyíl NYOMVA TARTÁSA 1 MÁSODPERCIG (Ha az 5mp-es ablakon belül vagyunk)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Csak akkor indul a számláló, ha clicksEnabled ÉS még NEM secret ÉS 1 másodpercig tartja
       if (e.key === "ArrowUp" && !e.repeat && clicksEnabled && !isSecret) {
         upKeyTimer.current = setTimeout(() => {
           activateSecret();
-        }, 2000);
+        }, 1000); // 1 másodperc hosszan kell nyomni
       }
     };
 
@@ -85,35 +113,33 @@ export default function MainLogo() {
     };
   }, [clicksEnabled, isSecret]);
 
-  const lastShakeTime = useRef(0);
-
+  // Mobil rázás kezelő függvény
   const handleMotion = (event: DeviceMotionEvent) => {
+    // CRITICAL: Csak akkor érzékelje a rázást, ha engedélyezve van az időablak!
+    if (!clicksEnabled || isSecret) return;
+
     const acc = event.accelerationIncludingGravity;
     if (!acc) return;
 
-    // Ha 1 másodpercen belül volt már rázás, ne aktiváljuk újra
     const now = Date.now();
     if (now - lastShakeTime.current < 1000) return;
 
-    // A "Gravity" verzió sokkal megbízhatóbb, mert a telefon súlyát is méri
     const totalAcc = Math.abs(acc.x!) + Math.abs(acc.y!) + Math.abs(acc.z!);
 
-    // Ha a hirtelen mozgás összege meghalad egy értéket
-    // Az 15-ös küszöbérték a gravitáció miatt kicsit magasabb kell legyen, pl. 20-25
-    if (totalAcc > 25) {
+    // Megemelt küszöbérték a megbízhatóságért
+    if (totalAcc > 30) {
       lastShakeTime.current = now;
       activateSecret();
     }
   };
 
-  // 4. Mobil: Rázás érzékelése
+  // 4. Mobil: Rázás figyelése (Figyelembe veszi a clicksEnabled-et a handleMotion-ben)
   useEffect(() => {
     window.addEventListener("devicemotion", handleMotion);
-
     return () => {
       window.removeEventListener("devicemotion", handleMotion);
     };
-  }, [handleMotion]);
+  }, [clicksEnabled, isSecret]); // Fontos dependency-k!
 
   const linkHandle = () => {
     if (isSecret) {
@@ -124,7 +150,7 @@ export default function MainLogo() {
   return (
     <div
       onClick={handleLogoClick}
-      className={`${isSecret && "cursor-pointer"} transition-all duration-300`}
+      className={`${isSecret ? "cursor-pointer" : ""} transition-all duration-300`}
     >
       <Image
         src={!isSecret ? "/BarCraft_logo_Corvin.webp" : "/treasure chest.svg"}
