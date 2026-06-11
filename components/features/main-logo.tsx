@@ -14,7 +14,7 @@ export default function MainLogo() {
   const upKeyTimer = useRef<NodeJS.Timeout | null>(null);
   const resetTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Kattintás logika (3 kattintás 1mp alatt) - MÓDOSÍTVA (async)
+  // 1. Kattintás logika (3 kattintás 1mp alatt)
   const handleLogoClick = async () => {
     if (isSecret) {
       router.push("/admin"); // Ha már titkos, kattintásra adminra dob
