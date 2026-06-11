@@ -37,6 +37,15 @@ export default function MainLogo() {
     }
   };
 
+  // Segédfüggvény a titok aktiválására
+  const activateSecret = () => {
+    setIsSecret(true);
+    const audio = new Audio("/Quests_Completed_sound.mp3");
+    audio.play().catch(() => {});
+    if (typeof navigator !== "undefined" && navigator.vibrate)
+      navigator.vibrate(200);
+  };
+
   // 2. 10mp-es visszaállítás (ha isSecret = true)
   useEffect(() => {
     if (isSecret) {
@@ -76,48 +85,35 @@ export default function MainLogo() {
     };
   }, [clicksEnabled, isSecret]);
 
+  const lastShakeTime = useRef(0);
+
+  const handleMotion = (event: DeviceMotionEvent) => {
+    const acc = event.accelerationIncludingGravity;
+    if (!acc) return;
+
+    // Ha 1 másodpercen belül volt már rázás, ne aktiváljuk újra
+    const now = Date.now();
+    if (now - lastShakeTime.current < 1000) return;
+
+    // A "Gravity" verzió sokkal megbízhatóbb, mert a telefon súlyát is méri
+    const totalAcc = Math.abs(acc.x!) + Math.abs(acc.y!) + Math.abs(acc.z!);
+
+    // Ha a hirtelen mozgás összege meghalad egy értéket
+    // Az 15-ös küszöbérték a gravitáció miatt kicsit magasabb kell legyen, pl. 20-25
+    if (totalAcc > 25) {
+      lastShakeTime.current = now;
+      activateSecret();
+    }
+  };
+
   // 4. Mobil: Rázás érzékelése
   useEffect(() => {
-    if (!clicksEnabled || isSecret) return;
-
-    let lastUpdate = 0;
-    let x = 0,
-      y = 0,
-      z = 0,
-      lastX = 0,
-      lastY = 0,
-      lastZ = 0;
-
-    const handleMotion = (event: DeviceMotionEvent) => {
-      const acc = event.acceleration; // Itt 'acceleration'-t használunk, nem a gravitációst
-      if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
-
-      const curTime = Date.now();
-      if (curTime - lastUpdate > 100) {
-        const diff = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ);
-        if (diff > 30) {
-          // Érzékenység állítása
-          activateSecret();
-        }
-        lastX = acc.x;
-        lastY = acc.y;
-        lastZ = acc.z;
-        lastUpdate = curTime;
-      }
-    };
-
     window.addEventListener("devicemotion", handleMotion);
-    return () => window.removeEventListener("devicemotion", handleMotion);
-  }, [clicksEnabled, isSecret]);
 
-  // Segédfüggvény a titok aktiválására
-  const activateSecret = () => {
-    setIsSecret(true);
-    const audio = new Audio("/Quests_Completed_sound.mp3");
-    audio.play().catch(() => {});
-    if (typeof navigator !== "undefined" && navigator.vibrate)
-      navigator.vibrate(200);
-  };
+    return () => {
+      window.removeEventListener("devicemotion", handleMotion);
+    };
+  }, [handleMotion]);
 
   const linkHandle = () => {
     if (isSecret) {
