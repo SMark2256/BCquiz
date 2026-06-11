@@ -127,7 +127,7 @@ export default function MainLogo() {
     const totalAcc = Math.abs(acc.x!) + Math.abs(acc.y!) + Math.abs(acc.z!);
 
     // Megemelt küszöbérték a megbízhatóságért
-    if (totalAcc > 30) {
+    if (totalAcc > 60) {
       lastShakeTime.current = now;
       activateSecret();
     }
