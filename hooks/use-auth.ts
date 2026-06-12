@@ -9,7 +9,7 @@ import {
   User,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, firestore } from "@/lib/firebase";
+import { auth, firestore, initAppCheck } from "@/lib/firebase";
 import { redirect } from "next/navigation";
 
 export function useAuth() {
@@ -20,6 +20,8 @@ export function useAuth() {
   // Admin jogosultság ellenőrzése a Firestore-ból
   const checkAdminStatus = async (userEmail: string | null) => {
     if (!userEmail) return false;
+
+    await initAppCheck();
 
     try {
       const configRef = doc(firestore, "settings", "config");
@@ -63,6 +65,7 @@ export function useAuth() {
     const provider = new GoogleAuthProvider();
     setLoading(true);
     try {
+      await initAppCheck();
       const result = await signInWithPopup(auth, provider);
       const hasAccess = await checkAdminStatus(result.user.email);
 

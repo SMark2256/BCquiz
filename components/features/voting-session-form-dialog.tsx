@@ -53,7 +53,7 @@ export function VotingSessionFormDialog({
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(false);
   const [options, setOptions] = useState<VoteTopicFormData[]>([
     emptyTopic(),
     emptyTopic(),
