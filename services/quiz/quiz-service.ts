@@ -140,6 +140,7 @@ export async function createQuiz(
   if (shouldUseMockStorage()) {
     return createLocalQuiz(data);
   }
+  await initAppCheck();
 
   try {
     const now = new Date();
@@ -169,6 +170,7 @@ export async function updateQuiz(
   if (shouldUseMockStorage()) {
     return updateLocalQuiz(id, data);
   }
+  await initAppCheck();
 
   try {
     const docRef = doc(firestore, COLLECTION_NAME, id);
@@ -194,6 +196,8 @@ export async function deleteQuiz(id: string): Promise<ApiResponse<void>> {
     return deleteLocalQuiz(id);
   }
 
+  await initAppCheck();
+
   try {
     const docRef = doc(firestore, COLLECTION_NAME, id);
     await deleteDoc(docRef);
@@ -209,6 +213,8 @@ export async function toggleQuizActive(id: string): Promise<ApiResponse<Quiz>> {
   if (shouldUseMockStorage()) {
     return (await import("../mock-storage")).toggleLocalQuizActive(id);
   }
+
+  await initAppCheck();
 
   try {
     const quizResult = await getQuiz(id);

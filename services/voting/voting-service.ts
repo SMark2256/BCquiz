@@ -167,6 +167,7 @@ export async function createVotingSession(
   if (shouldUseMockStorage()) {
     return createLocalVotingSession(data);
   }
+  await initAppCheck();
 
   try {
     const now = new Date();
@@ -212,6 +213,7 @@ export async function updateVotingSession(
   if (shouldUseMockStorage()) {
     return updateLocalVotingSession(id, data);
   }
+  await initAppCheck();
 
   try {
     const existing = await getVotingSession(id);
@@ -266,6 +268,8 @@ async function deleteAssociatedVotes(sessionId: string) {
 
 // Delete a voting session.
 export async function deleteVotingSession(id: string) {
+  await initAppCheck();
+
   try {
     // 1. Kapcsolódó fingerprint-ek törlése
     await deleteAssociatedVotes(id);
@@ -294,6 +298,8 @@ export async function toggleVotingSessionActive(
   if (shouldUseMockStorage()) {
     return toggleLocalVotingSessionActive(id);
   }
+
+  await initAppCheck();
 
   const session = await getVotingSession(id);
   if (!session.success || !session.data) {
@@ -367,6 +373,8 @@ export async function resetVotingSessionVotes(
   if (shouldUseMockStorage()) {
     return resetLocalVotingSessionVotes(sessionId);
   }
+
+  await initAppCheck();
 
   try {
     // 1. Szavazatok törlése a 'votes' táblából (hogy újra lehessen szavazni)
