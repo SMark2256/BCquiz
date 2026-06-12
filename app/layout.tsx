@@ -24,6 +24,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.barcraft-corvin.hu",
   },
+  keywords:
+    "kvíz, kvízest, bc, barcraft, BarCraft Corvin, kvízjáték, Budapest kvíz, geek kvíz",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 // A viewport beállításokat ide tedd külön
