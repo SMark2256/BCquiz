@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KVIZESTEK - BarCraft Corvin",
+  title: "BarCraft Corvin - Kvízestek és Kvízjátékok Budapesten",
   description:
-    "Kvízestek a BarCraft Corvinban. Teszteld a tudásod és szavazz a következő kvízest témákra!",
+    "Teszteld tudásod a BarCraft Corvin népszerű kvízestjein! Szavazz a következő kvíz témákra, és légy részese a közösségi élménynek.",
   alternates: {
     canonical: "https://www.barcraft-corvin.hu",
   },
