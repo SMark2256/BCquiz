@@ -167,8 +167,6 @@ export async function createVotingSession(
   if (shouldUseMockStorage()) {
     return createLocalVotingSession(data);
   }
-  await initAppCheck();
-
   try {
     const now = new Date();
     const votepool = buildVotepool(data.votepool);
@@ -450,8 +448,6 @@ async function deactivateAllSessions(exceptId?: string): Promise<void> {
  * Lekéri az összes szavazást a Firebase-ből
  */
 export async function fetchVotingSessionsDirectly() {
-  await initAppCheck();
-
   const q = query(votingCollection, orderBy("createdAt", "desc"));
   const snapshot = await trackQuery("fetchVotingSessionsDirectly", () =>
     getDocs(q),

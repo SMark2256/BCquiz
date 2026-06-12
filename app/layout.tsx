@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/components/providers/query-provider";
 import "./globals.css";
+import { AppCheckProvider } from "@/components/providers/app-check-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,21 +46,36 @@ export default function RootLayout({
     >
       <head>
         {/* Warm up connections to third-party origins used on first load. */}
-        <link rel="preconnect" href="https://firestore.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://firestore.googleapis.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://firebasestorage.googleapis.com"
+          crossOrigin="anonymous"
+        />
         <link rel="dns-prefetch" href="https://www.google.com" />
         <link rel="dns-prefetch" href="https://www.gstatic.com" />
-        <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://images.igdb.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://image.tmdb.org"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://images.igdb.com"
+          crossOrigin="anonymous"
+        />
       </head>
       <body
         className="min-h-full flex flex-col font-sans relative"
         suppressHydrationWarning
       >
         <QueryProvider>
-          <TooltipProvider>
-            <main className="flex-1 relative z-10">{children}</main>
-          </TooltipProvider>
+          <AppCheckProvider />
+          <main className="flex-1 relative z-10">{children}</main>
           <Analytics />
           <SpeedInsights />
         </QueryProvider>

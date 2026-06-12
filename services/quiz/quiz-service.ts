@@ -83,8 +83,6 @@ export async function getQuizzes(): Promise<ApiResponse<Quiz[]>> {
 
 // Get upcoming quizzes (active and future date)
 export async function getUpcomingQuizzes(): Promise<ApiResponse<Quiz[]>> {
-  await initAppCheck();
-
   if (shouldUseMockStorage()) {
     return { success: true, data: getLocalUpcomingQuizzes() };
   }

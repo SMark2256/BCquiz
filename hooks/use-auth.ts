@@ -21,9 +21,8 @@ export function useAuth() {
   const checkAdminStatus = async (userEmail: string | null) => {
     if (!userEmail) return false;
 
-    await initAppCheck();
-
     try {
+      await initAppCheck();
       const configRef = doc(firestore, "settings", "config");
       const configSnap = await getDoc(configRef);
 
@@ -65,7 +64,7 @@ export function useAuth() {
     const provider = new GoogleAuthProvider();
     setLoading(true);
     try {
-      await initAppCheck();
+      initAppCheck();
       const result = await signInWithPopup(auth, provider);
       const hasAccess = await checkAdminStatus(result.user.email);
 
