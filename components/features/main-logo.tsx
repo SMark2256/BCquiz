@@ -160,6 +160,7 @@ export default function MainLogo() {
         height={336}
         className="header-logo h-48 sm:h-56 pointer-events-none"
         priority
+        fetchPriority="high"
       />
     </div>
   );
