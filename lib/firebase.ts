@@ -22,6 +22,23 @@ let db: Firestore;
 let storage: FirebaseStorage;
 let authInstance: Auth;
 let queryCount = 0;
+let appCheckPromise: Promise<void> | null = null;
+
+export const initAppCheck = async () => {
+  if (typeof window !== "undefined" && !appCheckPromise) {
+    appCheckPromise = (async () => {
+      const { initializeAppCheck, ReCaptchaV3Provider } =
+        await import("firebase/app-check");
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(
+          process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!,
+        ),
+        isTokenAutoRefreshEnabled: true,
+      });
+    })();
+  }
+  return appCheckPromise;
+};
 
 export async function trackQuery<T>(
   label: string,
@@ -56,15 +73,6 @@ export async function ensureAnonymousUser() {
 
 function initializeFirebase() {
   app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-
-  if (typeof window !== "undefined") {
-    initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider(
-        process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!,
-      ),
-      isTokenAutoRefreshEnabled: true,
-    });
-  }
 
   let analytics;
   if (typeof window !== "undefined") {

@@ -14,7 +14,12 @@ import {
   writeBatch,
   runTransaction,
 } from "firebase/firestore";
-import { firestore, isFirebaseConfigured, trackQuery } from "@/lib/firebase";
+import {
+  firestore,
+  initAppCheck,
+  isFirebaseConfigured,
+  trackQuery,
+} from "@/lib/firebase";
 import {
   isMockMode,
   getLocalVotingSessions,
@@ -303,6 +308,8 @@ export async function voteForVoteTopic(
   topicId: string,
   fingerprint: string,
 ): Promise<ApiResponse<VotingSession>> {
+  await initAppCheck();
+
   try {
     // 1. Egyedi azonosító generálása a szavazathoz
     const voteDocId = `${sessionId}_${fingerprint}`;
@@ -435,6 +442,8 @@ async function deactivateAllSessions(exceptId?: string): Promise<void> {
  * Lekéri az összes szavazást a Firebase-ből
  */
 export async function fetchVotingSessionsDirectly() {
+  await initAppCheck();
+
   const q = query(votingCollection, orderBy("createdAt", "desc"));
   const snapshot = await trackQuery("fetchVotingSessionsDirectly", () =>
     getDocs(q),

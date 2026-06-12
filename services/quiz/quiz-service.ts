@@ -12,7 +12,12 @@ import {
   Timestamp,
   onSnapshot,
 } from "firebase/firestore";
-import { firestore, isFirebaseConfigured, trackQuery } from "@/lib/firebase";
+import {
+  firestore,
+  initAppCheck,
+  isFirebaseConfigured,
+  trackQuery,
+} from "@/lib/firebase";
 import {
   isMockMode,
   getLocalQuizzes,
@@ -78,6 +83,8 @@ export async function getQuizzes(): Promise<ApiResponse<Quiz[]>> {
 
 // Get upcoming quizzes (active and future date)
 export async function getUpcomingQuizzes(): Promise<ApiResponse<Quiz[]>> {
+  await initAppCheck();
+
   if (shouldUseMockStorage()) {
     return { success: true, data: getLocalUpcomingQuizzes() };
   }
