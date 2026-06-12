@@ -6,6 +6,7 @@ import MythicText from "@/components/ui/mythic-text";
 import MythicIcon from "@/components/ui/mythic-icon";
 import { FadeIn, BlurIn } from "@/components/ui/motion";
 import MainLogo from "@/components/features/main-logo";
+import AddressLink from "@/components/ui/address-link";
 
 export default function Home() {
   return (
@@ -53,9 +54,7 @@ export default function Home() {
                 <p className="text-xs font-medium uppercase tracking-wider opacity-70">
                   Helyszín
                 </p>
-                <p className="text-lg font-black tracking-tight sm:text-xl">
-                  1092 Budapest, Ferenc Körút 34
-                </p>
+                <AddressLink address="1092 Budapest, Ferenc Körút 34" />
               </div>
               <div className="h-px bg-background/20" />
               <div>
