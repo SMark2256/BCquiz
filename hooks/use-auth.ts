@@ -12,6 +12,29 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, firestore, initAppCheck } from "@/lib/firebase";
 import { redirect } from "next/navigation";
 
+// A legutóbb sikeresen hitelesített admin e-mail tárolásának kulcsa.
+const ADMIN_EMAIL_CACHE_KEY = "bcquiz_admin_email";
+
+const getCachedAdminEmail = (): string | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(ADMIN_EMAIL_CACHE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const setCachedAdminEmail = (email: string | null) => {
+  if (typeof window === "undefined") return;
+  try {
+    if (email) {
+      window.localStorage.setItem(ADMIN_EMAIL_CACHE_KEY, email);
+    } else {
+      window.localStorage.removeItem(ADMIN_EMAIL_CACHE_KEY);
+    }
+  } catch {}
+};
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -65,31 +88,55 @@ export function useAuth() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const hasAccess = await checkAdminStatusWithRetry(currentUser.email);
-        if (hasAccess === true) {
-          setUser(currentUser);
-          setIsAdmin(true);
-        } else if (hasAccess === false) {
-          // Csak akkor jelentkeztetünk ki, ha BIZTOSAN nem admin (nincs a listán).
-          await signOut(auth);
-          setUser(null);
-          setIsAdmin(false);
-        } else {
-          // "error": nem sikerült ellenőrizni (pl. frissítéskori versenyhelyzet).
-          // NE jelentkeztessünk ki. Megtartjuk a munkamenetet, és felvesszük a
-          // felhasználót adminként, hogy a frissítés ne dobjon ki.
-          // A jogosultság a következő sikeres ellenőrzéskor pontosítódik.
-          console.warn(
-            "Admin ellenőrzés átmenetileg sikertelen, munkamenet megtartva.",
-          );
+      if (!currentUser) {
+        setUser(null);
+        setIsAdmin(null);
+        setLoading(false);
+        return;
+      }
+
+      // OPTIMISTA LÉPÉS: ha ezt az e-mailt korábban már admin-ként
+      // hitelesítettük, frissítéskor azonnal beengedjük – nem várjuk meg a
+      // Firestore/App Check inicializálást, így a 3 mp-es App Check késleltetés
+      // melletti versenyhelyzet sem dob ki.
+      const cachedAdminEmail = getCachedAdminEmail();
+      const optimisticAdmin =
+        !!currentUser.email && currentUser.email === cachedAdminEmail;
+
+      if (optimisticAdmin) {
+        setUser(currentUser);
+        setIsAdmin(true);
+        setLoading(false);
+      }
+
+      // Háttérben (vagy ha nincs cache, akkor blokkolva) pontosítjuk a státuszt.
+      const hasAccess = await checkAdminStatusWithRetry(currentUser.email);
+
+      if (hasAccess === true) {
+        setCachedAdminEmail(currentUser.email);
+        setUser(currentUser);
+        setIsAdmin(true);
+      } else if (hasAccess === false) {
+        // Csak akkor jelentkeztetünk ki, ha a Firestore EGYÉRTELMŰEN azt mondja,
+        // hogy a felhasználó nincs az admin listán.
+        setCachedAdminEmail(null);
+        await signOut(auth);
+        setUser(null);
+        setIsAdmin(false);
+      } else {
+        // "error": nem sikerült ellenőrizni (átmeneti hiba / versenyhelyzet).
+        // NE jelentkeztessünk ki. Ha volt érvényes cache, maradjon admin.
+        console.warn(
+          "Admin ellenőrzés átmenetileg sikertelen, munkamenet megtartva.",
+        );
+        if (!optimisticAdmin) {
+          // Nem volt cache, így nem tudjuk biztosan – óvatosan beengedjük, hogy
+          // a frissítés ne dobjon ki; a következő sikeres ellenőrzés pontosít.
           setUser(currentUser);
           setIsAdmin(true);
         }
-      } else {
-        setUser(null);
-        setIsAdmin(null);
       }
+
       setLoading(false);
     });
 
@@ -104,10 +151,15 @@ export function useAuth() {
       const result = await signInWithPopup(auth, provider);
       const hasAccess = await checkAdminStatus(result.user.email);
 
-      if (!hasAccess) {
+      if (hasAccess !== true) {
+        setCachedAdminEmail(null);
         await signOut(auth);
         throw new Error("Nincs jogosultságod az admin felülethez.");
       }
+
+      // Sikeres admin bejelentkezés – elmentjük, hogy frissítéskor azonnal
+      // visszaengedjük a felhasználót.
+      setCachedAdminEmail(result.user.email);
 
       // JWT Token kinyerése (Profi szinten így kapod meg a tokent a backend hívásokhoz)
       const token = await result.user.getIdToken();
@@ -122,6 +174,7 @@ export function useAuth() {
   };
 
   const logout = async () => {
+    setCachedAdminEmail(null);
     await signOut(auth);
     return redirect("/");
   };
