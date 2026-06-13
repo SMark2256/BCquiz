@@ -17,8 +17,15 @@ export function useAuth() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Admin jogosultság ellenőrzése a Firestore-ból
-  const checkAdminStatus = async (userEmail: string | null) => {
+  // Admin jogosultság ellenőrzése a Firestore-ból.
+  // Visszatérési érték:
+  //   true  -> biztosan admin
+  //   false -> biztosan NEM admin (nincs a listán)
+  //   "error" -> nem sikerült ellenőrizni (hálózat / App Check / Firestore hiba)
+  //              ilyenkor NEM jelentkeztetünk ki, csak később újrapróbáljuk
+  const checkAdminStatus = async (
+    userEmail: string | null,
+  ): Promise<boolean | "error"> => {
     if (!userEmail) return false;
 
     try {
@@ -30,25 +37,54 @@ export function useAuth() {
         const adminEmails = configSnap.data().adminEmails as string[];
         return adminEmails.includes(userEmail);
       }
-      return false;
+      // A dokumentum nem létezik -> nem tudjuk biztosan eldönteni,
+      // ne rúgjuk ki a felhasználót emiatt.
+      return "error";
     } catch (error) {
       console.error("Hiba az admin ellenőrzésekor:", error);
-      return false;
+      return "error";
     }
+  };
+
+  // Admin ellenőrzés újrapróbálkozással, hogy a frissítéskori versenyhelyzet
+  // (App Check / reCAPTCHA / Firestore még nem áll készen) ne jelentkeztessen ki.
+  const checkAdminStatusWithRetry = async (
+    userEmail: string | null,
+    retries = 3,
+  ): Promise<boolean | "error"> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      const result = await checkAdminStatus(userEmail);
+      if (result !== "error") return result;
+      // Várunk egy kicsit, mielőtt újrapróbáljuk (exponenciálisan növekvő).
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+      }
+    }
+    return "error";
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const hasAccess = await checkAdminStatus(currentUser.email);
-        if (hasAccess) {
+        const hasAccess = await checkAdminStatusWithRetry(currentUser.email);
+        if (hasAccess === true) {
           setUser(currentUser);
           setIsAdmin(true);
-        } else {
-          // Ha be van jelentkezve, de nem admin, kijelentkeztetjük
+        } else if (hasAccess === false) {
+          // Csak akkor jelentkeztetünk ki, ha BIZTOSAN nem admin (nincs a listán).
           await signOut(auth);
           setUser(null);
           setIsAdmin(false);
+        } else {
+          // "error": nem sikerült ellenőrizni (pl. frissítéskori versenyhelyzet).
+          // NE jelentkeztessünk ki. Megtartjuk a munkamenetet, és felvesszük a
+          // felhasználót adminként, hogy a frissítés ne dobjon ki.
+          // A jogosultság a következő sikeres ellenőrzéskor pontosítódik.
+          console.warn(
+            "Admin ellenőrzés átmenetileg sikertelen, munkamenet megtartva.",
+          );
+          setUser(currentUser);
+          setIsAdmin(true);
         }
       } else {
         setUser(null);
