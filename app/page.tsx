@@ -60,7 +60,7 @@ export default function Home() {
               >
                 <MythicIcon>
                   <Image
-                    src="/Barcraft_logo.png"
+                    src="/Barcraft_logo_icon.png"
                     alt="Barcraft logo"
                     width={80}
                     height={80}
