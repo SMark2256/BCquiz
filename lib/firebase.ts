@@ -24,12 +24,16 @@ let authInstance: Auth;
 let queryCount = 0;
 let appCheckPromise: Promise<void> | null = null;
 
+let appCheckInstance: Awaited<
+  ReturnType<typeof import("firebase/app-check").initializeAppCheck>
+> | null = null;
+
 export const initAppCheck = async () => {
   if (typeof window !== "undefined" && !appCheckPromise) {
     appCheckPromise = (async () => {
       const { initializeAppCheck, ReCaptchaV3Provider } =
         await import("firebase/app-check");
-      initializeAppCheck(app, {
+      appCheckInstance = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(
           process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!,
         ),
@@ -38,6 +42,14 @@ export const initAppCheck = async () => {
     })();
   }
   return appCheckPromise;
+};
+
+export const refreshAppCheckToken = async (): Promise<void> => {
+  if (typeof window === "undefined") return;
+  await initAppCheck();
+  if (!appCheckInstance) return;
+  const { getToken } = await import("firebase/app-check");
+  await getToken(appCheckInstance, /* forceRefresh */ true);
 };
 
 export async function trackQuery<T>(

@@ -28,9 +28,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { QrGenerator } from "@/components/features/qr-generator";
 import { FadeIn, ScaleIn, BlurIn } from "@/components/ui/motion";
+import { AdminSessionTimeout } from "@/components/features/admin-session-timeout";
 
 function AdminContent() {
-  const { isAdmin, loading, login, logout } = useAuth();
+  const { isAdmin, loading, login, logout, extendSession } = useAuth();
   const { isMockMode, resetData } = useMockStatus();
   const firebaseConfigured = isFirebaseConfigured();
   const usingMockStorage = isMockMode || !firebaseConfigured;
@@ -66,6 +67,7 @@ function AdminContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      <AdminSessionTimeout onExtend={extendSession} onLogout={logout} />
       {/* Admin Header */}
       <header className="border-b border-border bg-secondary/30">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-3 sm:h-16 sm:px-4">

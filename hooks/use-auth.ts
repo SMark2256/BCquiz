@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -9,15 +9,21 @@ import {
   User,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, firestore, initAppCheck } from "@/lib/firebase";
+import {
+  auth,
+  firestore,
+  initAppCheck,
+  refreshAppCheckToken,
+} from "@/lib/firebase";
 import { redirect } from "next/navigation";
+import ms from "ms";
 
 // Tartós admin-munkamenet kulcsa. Az adatot localStorage-ban tároljuk, így a
 // munkamenet túléli a frissítést (F5) ÉS az oldal/lap bezárását is (a
 // sessionStorage ez utóbbit NEM élné túl). A munkamenethez lejárati idő
 // tartozik, hogy ne maradjon örökre érvényben.
 const ADMIN_SESSION_KEY = "bcquiz_admin_session";
-const ADMIN_SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 nap ezredmásodpercben
+const ADMIN_SESSION_TTL = ms("30minutes"); // 7 nap ezredmásodpercben
 
 type AdminSession = { email: string; expiresAt: number };
 
@@ -51,7 +57,7 @@ const saveAdminSession = (email: string | null) => {
   } catch {}
 };
 
-// Törli az admin-munkamenetet (kijelentkezéskor vagy egyértelmű elutasításkor).
+// Delete localstorage admin session details
 const clearAdminSession = () => {
   if (typeof window === "undefined") return;
   try {
@@ -59,10 +65,49 @@ const clearAdminSession = () => {
   } catch {}
 };
 
+// Logged session times
+export const ADMIN_DEADLINE_KEY = "bcquiz_admin_session_deadline";
+export const SESSION_DURATION = ms("30m"); // 30 minutes
+export const SESSION_WARNING_BEFORE = ms("5m"); // 5minutes
+
+// Esemény, amivel ugyanazon a lapon értesítjük a feliratkozókat a lejárat
+// frissüléséről / beállításáról (a storage esemény csak más lapokon sül el).
+export const ADMIN_DEADLINE_EVENT = "bcquiz-admin-deadline";
+
+// A jelenlegi munkamenet-lejárat kiolvasása localStorage-ból.
+export const getAdminSessionDeadline = (): number | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(ADMIN_DEADLINE_KEY);
+    if (!raw) return null;
+    const ts = Number(raw);
+    return Number.isFinite(ts) ? ts : null;
+  } catch {
+    return null;
+  }
+};
+
+const setAdminSessionDeadline = (ts: number) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(ADMIN_DEADLINE_KEY, String(ts));
+  } catch {}
+};
+
+const clearAdminSessionDeadline = () => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(ADMIN_DEADLINE_KEY);
+  } catch {}
+};
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  // A munkamenet explicit meghosszabbítását végző függvény referenciája.
+  // Az inaktivitási effektben állítjuk be, így az ott élő időzítőt is újraindítja.
+  const extendRef = useRef<(() => void) | null>(null);
 
   // Admin jogosultság ellenőrzése a Firestore-ból.
   // Visszatérési érték:
@@ -205,6 +250,15 @@ export function useAuth() {
       // frissítés / oldalelhagyás után is bejelentkezve maradjon a felhasználó.
       saveAdminSession(result.user.email);
 
+      // Friss, fix 30 perces munkamenet-lejárat beállítása a bejelentkezéstől.
+      const deadline = Date.now() + SESSION_DURATION;
+      setAdminSessionDeadline(deadline);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent(ADMIN_DEADLINE_EVENT, { detail: deadline }),
+        );
+      }
+
       // JWT Token kinyerése (Profi szinten így kapod meg a tokent a backend hívásokhoz)
       const token = await result.user.getIdToken();
       console.log("JWT Token elérhető a hitelesített kérésekhez.");
@@ -219,6 +273,7 @@ export function useAuth() {
 
   const logout = async () => {
     clearAdminSession();
+    clearAdminSessionDeadline();
     await signOut(auth);
     return redirect("/");
   };
@@ -226,33 +281,63 @@ export function useAuth() {
   useEffect(() => {
     if (!isAdmin) return;
 
-    const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 perc ezredmásodpercben
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout | undefined;
 
-    const resetTimer = () => {
+    // Auto-logout időzítő felfegyverzése egy adott lejárati időpontra.
+    // FONTOS: a hátralévő időt a tárolt lejáratból számoljuk, NEM mindig 30
+    // percre indítunk – így F5 után a visszaszámlálás folytatódik, nem nullázódik.
+    const armTimer = (deadline: number) => {
       if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        console.log("Inaktivitás miatt kijelentkeztetés...");
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        // A fix 30 perc már lejárt (pl. lap bezárva töltött idő alatt).
+        console.log("Munkamenet lejárt, kijelentkeztetés...");
         logout();
-      }, INACTIVITY_LIMIT);
+        return;
+      }
+      timeoutId = setTimeout(() => {
+        console.log("Munkamenet lejárt, kijelentkeztetés...");
+        logout();
+      }, remaining);
     };
 
-    // Események figyelése az aktivitáshoz
-    window.addEventListener("mousemove", resetTimer);
-    window.addEventListener("keydown", resetTimer);
-    window.addEventListener("click", resetTimer);
-    window.addEventListener("scroll", resetTimer);
+    // Induló lejárat: ha már van tárolt érték (pl. F5 után), azt használjuk;
+    // különben most állítjuk be a fix 30 perces ablakot.
+    let deadline = getAdminSessionDeadline();
+    if (!deadline) {
+      deadline = Date.now() + SESSION_DURATION;
+      setAdminSessionDeadline(deadline);
+      window.dispatchEvent(
+        new CustomEvent(ADMIN_DEADLINE_EVENT, { detail: deadline }),
+      );
+    }
+    armTimer(deadline);
 
-    resetTimer(); // Időzítő indítása
+    // Explicit hosszabbítás (a figyelmeztető ablak gombjáról): új fix 30 perces
+    // ablak + a reCAPTCHA (App Check) token kényszerített frissítése, mert az
+    // legfeljebb 1 órát él.
+    extendRef.current = () => {
+      const newDeadline = Date.now() + SESSION_DURATION;
+      setAdminSessionDeadline(newDeadline);
+      window.dispatchEvent(
+        new CustomEvent(ADMIN_DEADLINE_EVENT, { detail: newDeadline }),
+      );
+      refreshAppCheckToken().catch((e) =>
+        console.error("App Check token frissítési hiba:", e),
+      );
+      armTimer(newDeadline);
+    };
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
-      window.removeEventListener("mousemove", resetTimer);
-      window.removeEventListener("keydown", resetTimer);
-      window.removeEventListener("click", resetTimer);
-      window.removeEventListener("scroll", resetTimer);
+      extendRef.current = null;
     };
   }, [isAdmin]);
 
-  return { user, isAdmin, loading, login, logout };
+  // A munkamenet explicit meghosszabbítása (a figyelmeztető ablakból hívva).
+  const extendSession = useCallback(() => {
+    extendRef.current?.();
+  }, []);
+
+  return { user, isAdmin, loading, login, logout, extendSession };
 }
