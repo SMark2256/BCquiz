@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { SearchAndSelect } from "@/components/features/search-and-select";
+import { QuizCard } from "@/components/features/quiz-card";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -58,6 +59,25 @@ function QuizFormContent({
     imageUrl: quiz?.imageUrl || "",
     isActive: quiz?.isActive ?? false,
   });
+
+  // Élő előnézethez a form aktuális adataiból építünk egy Quiz objektumot.
+  // Az érvénytelen / üres dátumot kivédjük, hogy a QuizCard formázása ne dobjon.
+  const parsedDate = formData.date ? new Date(formData.date) : new Date();
+  const previewDate = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+  const previewQuiz: Quiz = {
+    id: quiz?.id || "preview",
+    title: formData.title || "Kvíz címe",
+    titleHu: formData.titleHu || undefined,
+    description: formData.description || undefined,
+    date: previewDate,
+    time: formData.time,
+    imageUrl: formData.imageUrl || undefined,
+    location: formData.location || undefined,
+    category: formData.category || undefined,
+    isActive: formData.isActive,
+    createdAt: quiz?.createdAt || new Date(),
+    updatedAt: quiz?.updatedAt || new Date(),
+  };
 
   const handleMediaSelect = (item: MediaItem) => {
     setFormData((prev) => ({
@@ -206,6 +226,16 @@ function QuizFormContent({
           }
         />
         <Label htmlFor="isActive">Aktív (megjelenik a látogatóknak)</Label>
+      </div>
+
+      <div className="flex flex-col gap-1.5 sm:gap-2">
+        <Label className="text-xs sm:text-sm">Kártya előnézet</Label>
+        <div className="bc-public-locked rounded-lg border border-border bg-secondary/30 p-3 sm:p-4">
+          <QuizCard
+            key={previewQuiz.imageUrl ?? "no-image"}
+            quiz={previewQuiz}
+          />
+        </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">

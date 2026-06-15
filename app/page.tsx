@@ -7,6 +7,7 @@ import MythicIcon from "@/components/ui/mythic-icon";
 import { FadeIn, BlurIn } from "@/components/ui/motion";
 import MainLogo from "@/components/features/main-logo";
 import AddressLink from "@/components/ui/address-link";
+import SocialLinks from "@/components/ui/social-links";
 
 export default function Home() {
   return (
@@ -48,17 +49,40 @@ export default function Home() {
 
         {/* Info Section */}
         <BlurIn whileInView>
-          <section className="rounded-lg border-2 border-white/10 bg-foreground p-4 text-background sm:p-6">
+          <section className="rounded-lg border-2 border-white/10 bg-foreground p-2 text-background sm:p-2">
             <div className="flex flex-col gap-3 text-center sm:gap-4">
+              <a
+                href="https://www.barcraft.hu/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`BarCraft Budapest oldal`}
+                className="flex items-center justify-center rounded-full mx-auto text-muted/70 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                <MythicIcon>
+                  <Image
+                    src="/Barcraft_logo.png"
+                    alt="Barcraft logo"
+                    width={80}
+                    height={80}
+                    className="w-14 h-auto object-contain"
+                  />
+                </MythicIcon>
+              </a>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider opacity-70">
+                <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-2">
                   Helyszín
                 </p>
                 <AddressLink address="1092 Budapest, Ferenc Körút 34" />
               </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-2">
+                  Elérhetőségek
+                </p>
+                <SocialLinks />
+              </div>
               <div className="h-px bg-background/20" />
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider opacity-70">
+                <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-2">
                   Kezdés
                 </p>
                 <MythicText>
