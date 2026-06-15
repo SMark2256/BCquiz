@@ -30,7 +30,7 @@ import { QrGenerator } from "@/components/features/qr-generator";
 import { FadeIn, ScaleIn, BlurIn } from "@/components/ui/motion";
 
 function AdminContent() {
-  const { user, isAdmin, loading, login, logout } = useAuth();
+  const { isAdmin, loading, login, logout } = useAuth();
   const { isMockMode, resetData } = useMockStatus();
   const firebaseConfigured = isFirebaseConfigured();
   const usingMockStorage = isMockMode || !firebaseConfigured;
@@ -43,7 +43,7 @@ function AdminContent() {
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!isAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
         <ScaleIn className="flex flex-col items-center">

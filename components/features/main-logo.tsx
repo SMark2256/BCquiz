@@ -19,6 +19,7 @@ export default function MainLogo() {
   const resetTimer = useRef<NodeJS.Timeout | null>(null);
   const windowTimer = useRef<NodeJS.Timeout | null>(null); // Időzítő az ablak bezárulásához
   const lastShakeTime = useRef<number>(0);
+  const lastAcc = useRef<{ x: number; y: number; z: number } | null>(null);
 
   // Eszköz típusának meghatározása (egyszerűsített módszer)
   useEffect(() => {
@@ -50,11 +51,15 @@ export default function MainLogo() {
 
         // Időzítés beállítása az eszköz típusától függően
         // Mobil: 2 másodperc (2000ms), PC: 5 másodperc (5000ms)
-        const timeoutDuration = deviceType === "mobile" ? 2000 : 5000;
+        const timeoutDuration = deviceType === "mobile" ? 10000 : 5000;
+
+        // Új ablak nyitásakor nullázzuk az előző gyorsulásértéket.
+        lastAcc.current = null;
 
         windowTimer.current = setTimeout(() => {
           setClicksEnabled(false);
           setClicks([]);
+          lastAcc.current = null;
         }, timeoutDuration);
       } else {
         setClicks([]);
@@ -113,29 +118,38 @@ export default function MainLogo() {
     };
   }, [clicksEnabled, isSecret]);
 
-  // Mobil rázás kezelő függvény
-  const handleMotion = (event: DeviceMotionEvent) => {
-    // CRITICAL: Csak akkor érzékelje a rázást, ha engedélyezve van az időablak!
-    if (!clicksEnabled || isSecret) return;
-
-    const acc = event.accelerationIncludingGravity;
-    if (!acc) return;
-
-    const now = Date.now();
-    if (now - lastShakeTime.current < 1000) return;
-
-    const totalAcc = Math.abs(acc.x!) + Math.abs(acc.y!) + Math.abs(acc.z!);
-
-    // Megemelt küszöbérték a megbízhatóságért
-    if (totalAcc > 60) {
-      lastShakeTime.current = now;
-      activateSecret();
-    }
-  };
-
   // 4. Mobil: Rázás figyelése (Figyelembe veszi a clicksEnabled-et a handleMotion-ben)
   useEffect(() => {
+    // Mobil rázás kezelő függvény
+    const handleMotion = (event: DeviceMotionEvent) => {
+      const acc = event.accelerationIncludingGravity;
+      if (!acc || acc.x == null || acc.y == null || acc.z == null) return;
+
+      const now = Date.now();
+
+      const prev = lastAcc.current;
+      lastAcc.current = { x: acc.x, y: acc.y, z: acc.z };
+
+      // Az első olvasáskor nincs mihez viszonyítani.
+      if (!prev) return;
+
+      // Delta (változás) alapú érzékelés: kivonjuk a gravitációt, így iOS-en és
+      // Androidon egyaránt megbízhatóan működik, függetlenül az eszköz
+      // gyorsulásérték-skálájától.
+      const delta =
+        Math.abs(acc.x - prev.x) +
+        Math.abs(acc.y - prev.y) +
+        Math.abs(acc.z - prev.z);
+
+      if (delta > 50) {
+        if (now - lastShakeTime.current < 1000) return;
+        lastShakeTime.current = now;
+        activateSecret();
+      }
+    };
+
     window.addEventListener("devicemotion", handleMotion);
+
     return () => {
       window.removeEventListener("devicemotion", handleMotion);
     };

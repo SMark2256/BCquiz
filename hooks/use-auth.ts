@@ -12,26 +12,50 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, firestore, initAppCheck } from "@/lib/firebase";
 import { redirect } from "next/navigation";
 
-// A legutóbb sikeresen hitelesített admin e-mail tárolásának kulcsa.
-const ADMIN_EMAIL_CACHE_KEY = "bcquiz_admin_email";
+// Tartós admin-munkamenet kulcsa. Az adatot localStorage-ban tároljuk, így a
+// munkamenet túléli a frissítést (F5) ÉS az oldal/lap bezárását is (a
+// sessionStorage ez utóbbit NEM élné túl). A munkamenethez lejárati idő
+// tartozik, hogy ne maradjon örökre érvényben.
+const ADMIN_SESSION_KEY = "bcquiz_admin_session";
+const ADMIN_SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 nap ezredmásodpercben
 
-const getCachedAdminEmail = (): string | null => {
+type AdminSession = { email: string; expiresAt: number };
+
+// Visszaadja az érvényes (nem lejárt) admin-munkamenetet, vagy null-t.
+const getAdminSession = (): AdminSession | null => {
   if (typeof window === "undefined") return null;
   try {
-    return window.localStorage.getItem(ADMIN_EMAIL_CACHE_KEY);
+    const raw = window.localStorage.getItem(ADMIN_SESSION_KEY);
+    if (!raw) return null;
+    const session = JSON.parse(raw) as AdminSession;
+    if (!session?.email || typeof session.expiresAt !== "number") return null;
+    if (session.expiresAt <= Date.now()) {
+      window.localStorage.removeItem(ADMIN_SESSION_KEY);
+      return null;
+    }
+    return session;
   } catch {
     return null;
   }
 };
 
-const setCachedAdminEmail = (email: string | null) => {
+// Elmenti / megújítja az admin-munkamenetet friss lejárati idővel.
+const saveAdminSession = (email: string | null) => {
+  if (typeof window === "undefined" || !email) return;
+  try {
+    const session: AdminSession = {
+      email,
+      expiresAt: Date.now() + ADMIN_SESSION_TTL,
+    };
+    window.localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+  } catch {}
+};
+
+// Törli az admin-munkamenetet (kijelentkezéskor vagy egyértelmű elutasításkor).
+const clearAdminSession = () => {
   if (typeof window === "undefined") return;
   try {
-    if (email) {
-      window.localStorage.setItem(ADMIN_EMAIL_CACHE_KEY, email);
-    } else {
-      window.localStorage.removeItem(ADMIN_EMAIL_CACHE_KEY);
-    }
+    window.localStorage.removeItem(ADMIN_SESSION_KEY);
   } catch {}
 };
 
@@ -87,21 +111,40 @@ export function useAuth() {
   };
 
   useEffect(() => {
+    // 1) AZONNALI HELYREÁLLÍTÁS A MUNKAMENETBŐL.
+    // Még mielőtt a Firebase egyáltalán lefuttatná az onAuthStateChanged-et,
+    // ha van érvényes tárolt admin-munkamenet, rögtön beengedjük a felhasználót.
+    // Így a frissítés / oldalelhagyás után NEM villan fel a kijelentkezett
+    // képernyő, és a Firebase pillanatnyi (App Check / token-refresh miatti)
+    // null állapota sem dob ki.
+    const initialSession = getAdminSession();
+    if (initialSession) {
+      setIsAdmin(true);
+      setLoading(false);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      const session = getAdminSession();
+
       if (!currentUser) {
-        setUser(null);
-        setIsAdmin(null);
+        // A Firebase épp nem ad élő felhasználót. Ha van érvényes tárolt
+        // munkamenet, MEGTARTJUK az admin hozzáférést – a Firebase a háttérben
+        // (App Check inicializálása után) újra hitelesít. NEM léptetjük ki.
+        if (session) {
+          setUser(null);
+          setIsAdmin(true);
+        } else {
+          setUser(null);
+          setIsAdmin(false);
+        }
         setLoading(false);
         return;
       }
 
-      // OPTIMISTA LÉPÉS: ha ezt az e-mailt korábban már admin-ként
-      // hitelesítettük, frissítéskor azonnal beengedjük – nem várjuk meg a
-      // Firestore/App Check inicializálást, így a 3 mp-es App Check késleltetés
-      // melletti versenyhelyzet sem dob ki.
-      const cachedAdminEmail = getCachedAdminEmail();
+      // OPTIMISTA LÉPÉS: ha ehhez az e-mailhez van érvényes munkamenet,
+      // azonnal beengedjük – nem várjuk meg a Firestore/App Check ellenőrzést.
       const optimisticAdmin =
-        !!currentUser.email && currentUser.email === cachedAdminEmail;
+        !!currentUser.email && currentUser.email === session?.email;
 
       if (optimisticAdmin) {
         setUser(currentUser);
@@ -109,29 +152,30 @@ export function useAuth() {
         setLoading(false);
       }
 
-      // Háttérben (vagy ha nincs cache, akkor blokkolva) pontosítjuk a státuszt.
+      // Háttérben (vagy ha nincs munkamenet, akkor blokkolva) pontosítjuk.
       const hasAccess = await checkAdminStatusWithRetry(currentUser.email);
 
       if (hasAccess === true) {
-        setCachedAdminEmail(currentUser.email);
+        // Sikeres ellenőrzés – megújítjuk a munkamenet lejáratát.
+        saveAdminSession(currentUser.email);
         setUser(currentUser);
         setIsAdmin(true);
       } else if (hasAccess === false) {
         // Csak akkor jelentkeztetünk ki, ha a Firestore EGYÉRTELMŰEN azt mondja,
         // hogy a felhasználó nincs az admin listán.
-        setCachedAdminEmail(null);
+        clearAdminSession();
         await signOut(auth);
         setUser(null);
         setIsAdmin(false);
       } else {
         // "error": nem sikerült ellenőrizni (átmeneti hiba / versenyhelyzet).
-        // NE jelentkeztessünk ki. Ha volt érvényes cache, maradjon admin.
+        // NE jelentkeztessünk ki. Ha volt érvényes munkamenet, maradjon admin.
         console.warn(
           "Admin ellenőrzés átmenetileg sikertelen, munkamenet megtartva.",
         );
         if (!optimisticAdmin) {
-          // Nem volt cache, így nem tudjuk biztosan – óvatosan beengedjük, hogy
-          // a frissítés ne dobjon ki; a következő sikeres ellenőrzés pontosít.
+          // Nincs munkamenet, de van élő Firebase user – óvatosan beengedjük,
+          // hogy a frissítés ne dobjon ki; a következő sikeres ellenőrzés pontosít.
           setUser(currentUser);
           setIsAdmin(true);
         }
@@ -152,14 +196,14 @@ export function useAuth() {
       const hasAccess = await checkAdminStatus(result.user.email);
 
       if (hasAccess !== true) {
-        setCachedAdminEmail(null);
+        clearAdminSession();
         await signOut(auth);
         throw new Error("Nincs jogosultságod az admin felülethez.");
       }
 
-      // Sikeres admin bejelentkezés – elmentjük, hogy frissítéskor azonnal
-      // visszaengedjük a felhasználót.
-      setCachedAdminEmail(result.user.email);
+      // Sikeres admin bejelentkezés – tartós munkamenetet mentünk, hogy
+      // frissítés / oldalelhagyás után is bejelentkezve maradjon a felhasználó.
+      saveAdminSession(result.user.email);
 
       // JWT Token kinyerése (Profi szinten így kapod meg a tokent a backend hívásokhoz)
       const token = await result.user.getIdToken();
@@ -174,13 +218,13 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    setCachedAdminEmail(null);
+    clearAdminSession();
     await signOut(auth);
     return redirect("/");
   };
 
   useEffect(() => {
-    if (!user || !isAdmin) return;
+    if (!isAdmin) return;
 
     const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 perc ezredmásodpercben
     let timeoutId: NodeJS.Timeout;
@@ -208,7 +252,7 @@ export function useAuth() {
       window.removeEventListener("click", resetTimer);
       window.removeEventListener("scroll", resetTimer);
     };
-  }, [user, isAdmin]);
+  }, [isAdmin]);
 
   return { user, isAdmin, loading, login, logout };
 }
