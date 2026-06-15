@@ -71,19 +71,19 @@ export function VoteTopicCard({
 
         <div className="relative flex items-stretch">
           {/* Image Section */}
-          <div className="relative h-24 w-20 shrink-0 overflow-hidden sm:h-28 sm:w-24">
+          <div className="relative h-30 w-20 shrink-0 overflow-hidden sm:h-32 sm:w-24">
             {topic.imageUrl ? (
               <Image
                 src={topic.imageUrl}
                 alt={topic.title}
                 fill
-                className={`object-cover transition-transform duration-300 ${!hasVotedAny && "group-hover:scale-105"} `}
+                className={`object-cover  transition-transform duration-300 ${!hasVotedAny && "group-hover:scale-105"} `}
                 sizes="(max-width: 768px) 80px, 96px"
                 crossOrigin="anonymous"
                 onLoad={() => setImageLoaded(true)}
               />
             ) : (
-              <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/20 to-secondary">
+              <div className="flex size-full items-center justify-center bg-linear-to-br from-primary/20 to-secondary">
                 <span className="text-2xl font-black text-primary sm:text-3xl">
                   {topic.title.charAt(0)}
                 </span>
@@ -97,7 +97,7 @@ export function VoteTopicCard({
           </div>
 
           {/* Content Section */}
-          <div className="flex flex-1 flex-col justify-center px-3 py-2 sm:px-4 sm:py-3">
+          <div className="flex flex-col flex-1 justify-center px-3 py-2 sm:px-4 sm:py-3 text-ellipsis min-w-16">
             <h4 className="text-sm font-bold text-background sm:text-base tracking-wide">
               {topic.title}
             </h4>
@@ -144,7 +144,7 @@ export function VoteTopicCard({
               ) : (
                 <>
                   <ThumbsUp data-icon="inline-start" />
-                  <span className="text-xs sm:text-sm">Szavazok</span>
+                  <span className="text-xs sm:text-sm min-w-fit">Szavazok</span>
                 </>
               )}
             </Button>
