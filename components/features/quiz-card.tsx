@@ -68,13 +68,13 @@ export function QuizCard({ quiz }: QuizCardProps) {
           {/*</div>*/}
 
           {/* Title Section */}
-          <div className="flex flex-1 flex-col items-center justify-center px-3 text-center">
+          <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-3 text-center">
             {quiz.titleHu && (
-              <p className="text-sm font-bold uppercase leading-tight tracking-wide text-background sm:text-sm">
+              <p className="text-xs font-medium uppercase leading-tight tracking-wide text-background sm:text-sm">
                 {quiz.titleHu}
               </p>
             )}
-            <h3 className="text-base font-black uppercase leading-tight tracking-tight text-background sm:text-lg md:text-xl tracking-wider">
+            <h3 className="text-base sm:text-xl font-black uppercase leading-tight text-background tracking-wider w-full line-clamp-3 wrap-break-word">
               {quiz.title}
             </h3>
             {quiz.category && (
