@@ -171,7 +171,7 @@ export function VotingSessionFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] sm:max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto pb-20 pt-10 sm:py-10">
+      <DialogContent className="flex flex-col max-h-[80dvh] sm:max-h-[90vh] w-[95dvw] sm:max-w-2xl overflow-y-auto pb-20 pt-10 sm:py-10">
         <DialogHeader className="pb-6 sm:pb-8">
           <DialogTitle>
             {isEditing ? "Szavazás Szerkesztése" : "Új Szavazás Létrehozása"}

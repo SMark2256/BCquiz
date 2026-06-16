@@ -83,10 +83,10 @@ function QuizFormContent({
     setFormData((prev) => ({
       ...prev,
       title: item.originalTitle,
-      titleHu: item.title !== item.originalTitle ? item.title : "",
+      titleHu: "",
       imageUrl: item.imageUrl || "",
       category: item.categoryLabel,
-      description: item.description || prev.description,
+      // description: item.description || prev.description,
     }));
   };
 
@@ -125,7 +125,7 @@ function QuizFormContent({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="title">Eredeti cím</Label>
+          <Label htmlFor="title">Cím</Label>
           <Input
             id="title"
             value={formData.title}
@@ -136,7 +136,7 @@ function QuizFormContent({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="titleHu">Magyar cím (opcionális)</Label>
+          <Label htmlFor="titleHu">Rövid leírás (opcionális)</Label>
           <Input
             id="titleHu"
             value={formData.titleHu}
@@ -147,17 +147,17 @@ function QuizFormContent({
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="description">Leírás</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
-          className="min-h-[80px]"
-        />
-      </div>
+      {/*<div className="flex flex-col gap-1.5">*/}
+      {/*  <Label htmlFor="description">Leírás</Label>*/}
+      {/*  <Textarea*/}
+      {/*    id="description"*/}
+      {/*    value={formData.description}*/}
+      {/*    onChange={(e) =>*/}
+      {/*      setFormData({ ...formData, description: e.target.value })*/}
+      {/*    }*/}
+      {/*    className="min-h-[80px]"*/}
+      {/*  />*/}
+      {/*</div>*/}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="flex flex-col gap-1.5">
@@ -208,12 +208,13 @@ function QuizFormContent({
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="imageUrl">Borítókép URL</Label>
-        <Input
+        <Textarea
           id="imageUrl"
           value={formData.imageUrl}
           onChange={(e) =>
             setFormData({ ...formData, imageUrl: e.target.value })
           }
+          className="min-h-12 max-h-26 text-wrap"
         />
       </div>
 
@@ -259,7 +260,7 @@ export function QuizFormDialog({
 }: QuizFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[95vw] sm:max-w-2xl overflow-y-auto p-6 sm:p-10">
+      <DialogContent className="flex flex-col max-h-[80dvh] w-[95vw] sm:max-w-2xl overflow-y-auto px-4 py-12 sm:p-10">
         <DialogHeader className="pb-6 sm:pb-8">
           <DialogTitle>
             {quiz ? "Kvíz Szerkesztése" : "Új Kvíz Létrehozása"}

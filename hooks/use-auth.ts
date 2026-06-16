@@ -313,18 +313,14 @@ export function useAuth() {
     }
     armTimer(deadline);
 
-    // Explicit hosszabbítás (a figyelmeztető ablak gombjáról): új fix 30 perces
-    // ablak + a reCAPTCHA (App Check) token kényszerített frissítése, mert az
-    // legfeljebb 1 órát él.
+    // Explicit hosszabbítás (a figyelmeztető ablak gombjáról): új fix 30 perces ablak
     extendRef.current = () => {
       const newDeadline = Date.now() + SESSION_DURATION;
       setAdminSessionDeadline(newDeadline);
       window.dispatchEvent(
         new CustomEvent(ADMIN_DEADLINE_EVENT, { detail: newDeadline }),
       );
-      refreshAppCheckToken().catch((e) =>
-        console.error("App Check token frissítési hiba:", e),
-      );
+
       armTimer(newDeadline);
     };
 
