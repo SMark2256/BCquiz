@@ -2,7 +2,15 @@
 
 import { motion } from "framer-motion";
 
-const MythicIcon = ({ children }: { children: React.ReactNode }) => {
+const MythicIcon = ({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: {
+    padding: string;
+  };
+}) => {
   return (
     <motion.div
       animate={{
@@ -25,7 +33,7 @@ const MythicIcon = ({ children }: { children: React.ReactNode }) => {
       }}
       style={{
         display: "inline-block", // Hogy csak az elem méretéig tartson az animáció
-        padding: "10px",
+        padding: style?.padding || "10px",
       }}
     >
       {children}

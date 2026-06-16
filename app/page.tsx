@@ -49,26 +49,31 @@ export default function Home() {
 
         {/* Info Section */}
         <BlurIn whileInView>
-          <section className="rounded-lg border-2 border-white/10 bg-foreground p-2 text-background sm:p-2">
+          <section className="rounded-lg border-2 border-white/10 bg-foreground p-4 text-background sm:p-4">
             <div className="flex flex-col gap-3 text-center sm:gap-4">
-              <a
-                href="https://www.barcraft.hu/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`BarCraft Budapest weboldal`}
-                className="flex items-center justify-center rounded-full mx-auto text-muted/70 transition-all duration-300 hover:drop-shadow-[0_0_5px_rgba(255,50,255,0.6)] focus:drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]"
-              >
-                <MythicIcon>
-                  <Image
-                    src="/BarCraft_logo_icon.webp"
-                    alt="Barcraft logo"
-                    width={80}
-                    height={80}
-                    className="w-14 h-auto object-contain"
-                    style={{ height: "auto" }}
-                  />
-                </MythicIcon>
-              </a>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-2">
+                  Látogass el oldalunkra
+                </p>
+                <a
+                  href="https://www.barcraft.hu/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`BarCraft Budapest weboldal`}
+                  className="flex items-center justify-center rounded-full mx-auto text-muted/70 transition-all duration-300 hover:drop-shadow-[0_0_5px_rgba(255,50,255,0.6)] focus:drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]"
+                >
+                  <MythicIcon style={{ padding: "0px" }}>
+                    <Image
+                      src="/BarCraft_logo_icon.webp"
+                      alt="Barcraft logo"
+                      width={80}
+                      height={80}
+                      className="w-14 h-auto object-contain"
+                      style={{ height: "auto" }}
+                    />
+                  </MythicIcon>
+                </a>
+              </div>
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-2">
                   Helyszín

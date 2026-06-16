@@ -141,7 +141,7 @@ export default function MainLogo() {
         Math.abs(acc.y - prev.y) +
         Math.abs(acc.z - prev.z);
 
-      if (delta > 50) {
+      if (delta > 50 && clicksEnabled && !isSecret) {
         if (now - lastShakeTime.current < 1000) return;
         lastShakeTime.current = now;
         activateSecret();
