@@ -90,7 +90,6 @@ export function VotingSessionFormDialog({
         // Creating a new session - blank form.
         setTitle("");
         setDescription("");
-        setIsActive(true);
         setOptions([emptyTopic(), emptyTopic()]);
       }
       setActiveOptionIndex(null);
