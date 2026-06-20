@@ -1,164 +1,157 @@
-# BC Quiz – BarCraft Corvin Kvízestek
+# BC Quiz – BarCraft Corvin Quiz Nights
 
-Egy Next.js alapú webalkalmazás a **BarCraft Corvin** kvízestjeinek bemutatására és a látogatói szavazás kezelésére. A
-nyilvános felület megjeleníti a közelgő kvízeseteket, és lehetővé teszi a látogatók számára, hogy szavazzanak a
-következő kvízest témájára. Egy védett admin felület szolgál a kvízek és a szavazások kezelésére.
+A Next.js based web application for presenting **BarCraft Corvin** quiz nights and handling visitor voting. The public interface displays upcoming quiz events and allows visitors to vote for the theme of the next quiz night. A protected admin interface serves for managing quizzes and voting sessions.
 
 ---
 
-## Tartalomjegyzék
+## Table of Contents
 
-- [Funkciók](#funkciók)
-- [Technológiai stack](#technológiai-stack)
-- [Architektúra áttekintés](#architektúra-áttekintés)
-- [Projektstruktúra](#projektstruktúra)
-- [Adatmodellek](#adatmodellek)
-- [Adattárolás: Firebase vs. helyi mock mód](#adattárolás-firebase-vs-helyi-mock-mód)
-- [Hitelesítés és jogosultság](#hitelesítés-és-jogosultság)
-- [Szavazási rendszer](#szavazási-rendszer)
-- [Külső média API-k](#külső-média-api-k)
-- [Környezeti változók](#környezeti-változók)
-- [Telepítés és futtatás](#telepítés-és-futtatás)
-- [Firebase beállítása](#firebase-beállítása)
-- [Fejlesztői útmutató](#fejlesztői-útmutató)
-- [Felhasználói útmutató](#felhasználói-útmutató)
-- [Telepítés Vercelre](#telepítés-vercelre)
-
----
-
-## Funkciók
-
-### Nyilvános oldal (`/`)
-
-- **Közelgő kvízestek listája** – Aktív, jövőbeli dátumú kvízek megjelenítése kártyák formájában.
-- **Élő szavazás** – A látogatók szavazhatnak a következő kvízest témájára. Egyszerre csak egy aktív szavazás futhat.
-- **Egyszeri szavazás védelem** – Egy látogató szavazatonként csak egyszer adhat le voksot (
-  lásd [Szavazási rendszer](#szavazási-rendszer)).
-- **Helyszín- és időpont információk** – Statikus infóblokk a rendezvény részleteivel.
-- **Reszponzív felület** – Mobilra optimalizált, animációkkal (Framer Motion).
-
-### Admin felület (`/admin`)
-
-- **Google-fiókos bejelentkezés** – Csak engedélyezett e-mail címmel rendelkező adminok férhetnek hozzá.
-- **Kvízek kezelése** – Létrehozás, szerkesztés, törlés, aktiválás/deaktiválás.
-- **Szavazások kezelése** – Szavazási session-ök létrehozása, témák (votepool) szerkesztése, aktiválás, szavazatok
-  nullázása.
-- **Élő eredmények** – A szavazatok aránya és állása valós időben követhető.
-- **Média kereső** – Filmek, sorozatok, könyvek és játékok keresése borítóképekkel (TMDb, Google Books, IGDB).
-- **QR-kód generátor** – Egyedi QR-kódok generálása és letöltése (pl. a szavazó oldal linkjéhez).
-- **Sötét/világos téma** – Admin-specifikus témaváltó villanásmentes (flash-free) betöltéssel.
-- **Automatikus kijelentkezés** – 30 perc inaktivitás után a rendszer automatikusan kijelentkeztet.
-- **Helyi tárolás jelző** – Vizuális jelzés, ha az alkalmazás mock (localStorage) módban fut.
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Architecture Overview](#architecture-overview)
+- [Project Structure](#project-structure)
+- [Data Models](#data-models)
+- [Data Storage: Firebase vs. Local Mock Mode](#data-storage-firebase-vs-local-mock-mode)
+- [Authentication and Authorization](#authentication-and-authorization)
+- [Voting System](#voting-system)
+- [External Media APIs](#external-media-apis)
+- [Environment Variables](#environment-variables)
+- [Installation and Running](#installation-and-running)
+- [Firebase Setup](#firebase-setup)
+- [Developer Guide](#developer-guide)
+- [User Guide](#user-guide)
+- [Deployment to Vercel](#deployment-to-vercel)
 
 ---
 
-## Technológiai stack
+## Features
 
-| Kategória              | Technológia                                               |
+### Public Page (`/`)
+
+- **Upcoming Quiz Nights List** – Displaying active quizzes with future dates in card format.
+- **Live Voting** – Visitors can vote for the theme of the next quiz night. Only one active voting session can run at a time.
+- **Single Vote Protection** – A visitor can only cast one vote per session (see [Voting System](#voting-system)).
+- **Location and Time Information** – Static info block with event details.
+- **Responsive Interface** – Mobile-optimized with animations (Framer Motion).
+
+### Admin Interface (`/admin`)
+
+- **Google Account Login** – Only admins with authorized email addresses can access.
+- **Quiz Management** – Create, edit, delete, activate/deactivate.
+- **Voting Management** – Create voting sessions, edit themes (votepool), activate, reset votes.
+- **Live Results** – Vote distribution and standing can be followed in real-time.
+- **Media Search** – Search for movies, series, books, and games with cover art (TMDb, Google Books, IGDB).
+- **QR Code Generator** – Generate and download custom QR codes (e.g., for the voting page link).
+- **Dark/Light Theme** – Admin-specific theme switcher with flash-free loading.
+- **Automatic Logout** – The system automatically logs out after 30 minutes of inactivity.
+- **Local Storage Indicator** – Visual indicator when the application is running in mock (localStorage) mode.
+
+---
+
+## Technology Stack
+
+| Category               | Technology                                                |
 |------------------------|-----------------------------------------------------------|
-| Keretrendszer          | [Next.js 16](https://nextjs.org) (App Router)             |
-| UI könyvtár            | React 19                                                  |
-| Nyelv                  | TypeScript                                                |
-| Stílus                 | Tailwind CSS v4                                           |
-| Komponensek            | shadcn/ui + Base UI                                       |
-| Adatlekérés / cache    | TanStack Query (React Query) + persist client             |
-| Backend / adatbázis    | Firebase (Firestore, Storage, Auth, App Check, Analytics) |
-| Biztonság / Botvédelem | Google reCAPTCHA v3 (Firebase App Check providerként)     |
-| Animáció               | Framer Motion                                             |
-| Diagramok              | Recharts                                                  |
-| QR-kód                 | qrcode.react                                              |
-| Helyi tárolás          | localforage (visitor ID), localStorage (mock mód)         |
-| Analitika              | Vercel Analytics + Speed Insights                         |
+| Framework              | [Next.js 16](https://nextjs.org) (App Router)             |
+| UI Library             | React 19                                                  |
+| Language               | TypeScript                                                |
+| Styling                | Tailwind CSS v4                                           |
+| Components             | shadcn/ui + Base UI                                       |
+| Data Fetching / Cache  | TanStack Query (React Query) + persist client             |
+| Backend / Database     | Firebase (Firestore, Storage, Auth, App Check, Analytics) |
+| Security / Bot Protection | Google reCAPTCHA v3 (as Firebase App Check provider)   |
+| Animation              | Framer Motion                                             |
+| Charts                 | Recharts                                                  |
+| QR Code                | qrcode.react                                              |
+| Local Storage          | localforage (visitor ID), localStorage (mock mode)        |
+| Analytics              | Vercel Analytics + Speed Insights                         |
 
 ---
 
-## Architektúra áttekintés
+## Architecture Overview
 
-Az alkalmazás egy **kétszintű architektúrát** követ:
+The application follows a **two-tier architecture**:
 
-1. **Nyilvános réteg** – Statikusan/kliensoldalon renderelt oldal, amely TanStack Query-n keresztül olvassa az adatokat
-   Firestore-ból (vagy mock módban a localStorage-ból).
-2. **Admin réteg** – Hitelesítéshez kötött kezelőfelület, amely írási műveleteket végez.
+1. **Public Layer** – Statically/client-side rendered page that reads data from Firestore (or localStorage in mock mode) via TanStack Query.
+2. **Admin Layer** – Authentication-protected management interface for performing write operations.
 
-Az adatfolyam egységes szolgáltatási rétegen (`services/`) keresztül zajlik. Minden szolgáltatás automatikusan eldönti,
-hogy **Firebase**-t vagy **helyi mock tárolót** használjon a konfiguráció alapján – így a UI kód változatlan marad
-mindkét módban.
+Data flow occurs through a unified service layer (`services/`). Each service automatically decides whether to use **Firebase** or **local mock storage** based on configuration – thus UI code remains unchanged in both modes.
 
 ```
-UI komponensek
+UI Components
     │
     ▼
-React Query hookok  (hooks/use-*.ts)
+React Query Hooks  (hooks/use-*.ts)
     │
     ▼
-Szolgáltatási réteg (services/*-service.ts)
+Service Layer (services/*-service.ts)
     │
-    ├──► Firebase (Firestore / Storage / Auth)   ← éles mód
-    └──► mock-storage.ts (localStorage)          ← fejlesztői / mock mód
+    ├──► Firebase (Firestore / Storage / Auth)   ← Production mode
+    └──► mock-storage.ts (localStorage)          ← Developer / Mock mode
 ```
 
 ---
 
-## Projektstruktúra
+## Project Structure
 
 ```
 .
 ├── app/
-│   ├── page.tsx                 # Nyilvános főoldal
-│   ├── layout.tsx               # Gyökér layout, fontok, metaadatok, preconnect
-│   ├── globals.css              # Globális stílusok és design tokenek
+│   ├── page.tsx                 # Public main page
+│   ├── layout.tsx               # Root layout, fonts, metadata, preconnect
+│   ├── globals.css              # Global styles and design tokens
 │   ├── admin/
-│   │   ├── page.tsx             # Admin felület (tabok: kvízek / szavazás / eszközök)
-│   │   └── layout.tsx           # Villanásmentes téma-inicializáló script
+│   │   ├── page.tsx             # Admin interface (tabs: quizzes / voting / tools)
+│   │   └── layout.tsx           # Flash-free theme initializer script
 │   └── api/
 │       └── igdb/route.ts        # IGDB proxy (Twitch token + cache)
 │
 ├── components/
-│   ├── features/                # Üzleti komponensek (kártyák, táblák, dialógusok, widgetek)
+│   ├── features/                # Business components (cards, tables, dialogs, widgets)
 │   ├── providers/               # QueryProvider, AdminThemeProvider
-│   └── ui/                      # shadcn/ui alapkomponensek
+│   └── ui/                      # shadcn/ui base components
 │
 ├── hooks/
-│   ├── use-auth.ts              # Google bejelentkezés + admin ellenőrzés + auto-logout
-│   ├── use-quizzes.ts           # Kvízek lekérése (React Query)
-│   ├── use-voting.ts            # Szavazás logika + visitor ID kezelés
-│   ├── use-voting-sessions.ts   # Szavazási session-ök lekérése
-│   ├── use-mock-data.ts         # Mock mód státusz és adat-reset
-│   └── motion-permission.ts     # Animációs preferencia kezelése
+│   ├── use-auth.ts              # Google login + admin check + auto-logout
+│   ├── use-quizzes.ts           # Quiz fetching (React Query)
+│   ├── use-voting.ts            # Voting logic + visitor ID handling
+│   ├── use-voting-sessions.ts   # Voting session fetching
+│   ├── use-mock-data.ts         # Mock mode status and data reset
+│   └── motion-permission.ts     # Animation preference handling
 │
 ├── services/
-│   ├── quiz/                    # Kvíz szolgáltatás + Firestore konverter
-│   ├── voting/                  # Szavazás szolgáltatás + Firestore konverter
-│   ├── media-api.ts             # TMDb / Google Books / IGDB kereső
-│   ├── storage-service.ts       # Firebase Storage képfeltöltés
-│   └── mock-storage.ts          # localStorage alapú perzisztencia (mock mód)
+│   ├── quiz/                    # Quiz service + Firestore converter
+│   ├── voting/                  # Voting service + Firestore converter
+│   ├── media-api.ts             # TMDb / Google Books / IGDB searcher
+│   ├── storage-service.ts       # Firebase Storage image upload
+│   └── mock-storage.ts          # localStorage-based persistence (mock mode)
 │
 ├── lib/
-│   ├── firebase.ts              # Firebase inicializálás, App Check, helper-ek
-│   └── utils.ts                 # Segédfüggvények (cn, stb.)
+│   ├── firebase.ts              # Firebase initialization, App Check, helpers
+│   └── utils.ts                 # Utility functions (cn, etc.)
 │
 ├── types/
-│   └── index.ts                 # Központi TypeScript típusdefiníciók
+│   └── index.ts                 # Central TypeScript type definitions
 │
-└── public/                      # Statikus assetek (logók, ikonok, hang)
+└── public/                      # Static assets (logos, icons, sound)
 ```
 
 ---
 
-## Adatmodellek
+## Data Models
 
-A központi típusok a `types/index.ts` fájlban találhatók.
+Central types are located in the `types/index.ts` file.
 
-### `Quiz` – Kvízest
+### `Quiz` – Quiz Night
 
 ```ts
 interface Quiz {
     id: string;
     title: string;
-    titleHu?: string;        // Magyar cím
+    titleHu?: string;        // Hungarian title
     description?: string;
     date: Date;
-    time: string;            // pl. "20:00"
+    time: string;            // e.g., "20:00"
     imageUrl?: string;
     location?: string;
     category?: string;
@@ -168,9 +161,9 @@ interface Quiz {
 }
 ```
 
-### `VotingSession` – Szavazás
+### `VotingSession` – Voting
 
-Egyszerre **csak egy** session lehet aktív (`isActive`). A `votepool` tartalmazza a választható témákat.
+Only **one** session can be active (`isActive`) at a time. The `votepool` contains the selectable themes.
 
 ```ts
 interface VotingSession {
@@ -184,7 +177,7 @@ interface VotingSession {
 }
 ```
 
-### `VoteTopic` – Szavazható téma
+### `VoteTopic` – Votable Theme
 
 ```ts
 interface VoteTopic {
@@ -196,23 +189,23 @@ interface VoteTopic {
 }
 ```
 
-### `DbVoteRecord` – Leadott szavazat (Firestore `votes` kollekció)
+### `DbVoteRecord` – Cast Vote (Firestore `votes` collection)
 
-Az egyediséget a `sessionId_fingerprint` formátumú dokumentum-azonosító garantálja.
+Uniqueness is guaranteed by the document ID in `sessionId_fingerprint` format.
 
 ```ts
 interface DbVoteRecord {
     id: string;              // "{sessionId}_{fingerprint}"
     sessionId: string;
     topicId: string;
-    fingerprint: string;     // látogatói azonosító
+    fingerprint: string;     // visitor ID
     timestamp: Date;
 }
 ```
 
-### `ApiResponse<T>` – Egységes válaszformátum
+### `ApiResponse<T>` – Unified Response Format
 
-A szolgáltatási réteg minden művelete ezt a típust adja vissza:
+Every operation in the service layer returns this type:
 
 ```ts
 interface ApiResponse<T> {
@@ -224,9 +217,9 @@ interface ApiResponse<T> {
 
 ---
 
-## Adattárolás: Firebase vs. helyi mock mód
+## Data Storage: Firebase vs. Local Mock Mode
 
-Az alkalmazás kétféle adattárolási móddal működhet. A választás automatikus:
+The application can operate with two types of data storage. The choice is automatic:
 
 ```ts
 function shouldUseMockStorage(): boolean {
@@ -234,87 +227,78 @@ function shouldUseMockStorage(): boolean {
 }
 ```
 
-- **Éles (Firebase) mód** – Akkor aktív, ha a Firebase környezeti változók be vannak állítva, és a mock mód nincs
-  bekapcsolva. Az adatok a Firestore-ban tárolódnak.
-- **Mock (helyi) mód** – Akkor aktív, ha `NEXT_PUBLIC_USE_LOCAL_MOCK=true`, **vagy** ha a Firebase nincs konfigurálva.
-  Az adatok a böngésző `localStorage`-jában élnek, alapértelmezett demó adatokkal feltöltve. Ez ideális fejlesztéshez és
-  teszteléshez Firebase nélkül.
+- **Production (Firebase) Mode** – Active when Firebase environment variables are set and mock mode is not enabled. Data is stored in Firestore.
+- **Mock (Local) Mode** – Active when `NEXT_PUBLIC_USE_LOCAL_MOCK=true`, **or** if Firebase is not configured. Data lives in the browser's `localStorage`, populated with default demo data. This is ideal for development and testing without Firebase.
 
-A mock módot az admin felület egy "Helyi tárolás" jelzővel és figyelmeztető sávval mutatja, ahol az adatok
-alapértelmezettre is visszaállíthatók.
+Mock mode is indicated on the admin interface with a "Local Storage" label and a warning bar, where data can also be reset to defaults.
 
-A `localStorage` kulcsok: `bcquiz_quizzes`, `bcquiz_voting_sessions`, `bcquiz_initialized`.
+The `localStorage` keys: `bcquiz_quizzes`, `bcquiz_voting_sessions`, `bcquiz_initialized`.
 
 ---
 
-## Hitelesítés és jogosultság
+## Authentication and Authorization
 
-A hitelesítés a `hooks/use-auth.ts` hookban van megvalósítva, Firebase Authentication (Google provider) segítségével.
+Authentication is implemented in the `hooks/use-auth.ts` hook using Firebase Authentication (Google provider).
 
-**Folyamat:**
+**Process:**
 
-1. A felhasználó a Google fiókjával jelentkezik be (popup).
-2. A rendszer ellenőrzi az e-mail címet a Firestore `settings/config` dokumentum `adminEmails` tömbjében.
-3. Ha az e-mail nem szerepel a listában, a rendszer azonnal kijelentkezteti.
-4. Sikeres bejelentkezés esetén JWT token érhető el a hitelesített kérésekhez.
+1. User logs in with their Google account (popup).
+2. The system checks the email address against the `adminEmails` array in the `settings/config` document in Firestore.
+3. If the email is not on the list, the system immediately logs the user out.
+4. Upon successful login, a JWT token is available for authenticated requests.
 
-**Biztonsági jellemzők:**
+**Security Features:**
 
-- Az admin e-mail lista a Firestore-ban tárolódik, nem a kódban → új admin a kód módosítása nélkül adható hozzá.
-- **Automatikus kijelentkezés** 30 perc inaktivitás után (egér, billentyűzet, kattintás, görgetés figyelése).
-- A nyilvános szavazáshoz **anonim Firebase hitelesítés** (`ensureAnonymousUser`) használható.
+- The admin email list is stored in Firestore, not in the code → new admins can be added without modifying code.
+- **Automatic Logout** after 30 minutes of inactivity (monitoring mouse, keyboard, clicks, and scrolling).
+- **Anonymous Firebase Authentication** (`ensureAnonymousUser`) can be used for public voting.
 
-> **Megjegyzés:** A tényleges hozzáférési szabályokat Firestore Security Rules-ban is érdemes kikényszeríteni (
-> server-side), a kliensoldali ellenőrzés mellett.
-
----
-
-## Szavazási rendszer
-
-A szavazás célja, hogy minden látogató **session-önként csak egyszer** szavazhasson, regisztráció nélkül.
-
-**Hogyan működik:**
-
-1. Minden böngészőhöz egyedi **visitor ID** (`crypto.randomUUID()`) generálódik, és `localforage`-ban tárolódik (
-   `bcquiz_visitor_id` kulcs).
-2. Szavazáskor a `votes` kollekcióba egy dokumentum kerül `{sessionId}_{visitorId}` azonosítóval.
-3. A művelet **Firestore tranzakcióban** fut (`runTransaction`):
-    - Ellenőrzi, hogy létezik-e már szavazat ezzel az azonosítóval.
-    - Ha igen → hibát dob ("Te már szavaztál ebben a témában!").
-    - Ha nem → rögzíti a szavazatot **és** atomi módon növeli a témára adott voksok számát.
-4. A szavazatok nullázásakor a kapcsolódó `votes` dokumentumok is törlődnek, így újra lehet szavazni.
-
-> A `fingerprint` mező valójában a visitor ID-t tartalmazza. Ez a megoldás megakadályozza a véletlen dupla szavazást, de
-> nem nyújt teljes védelmet szándékos visszaélés ellen (pl. localStorage törlése, több böngésző). Erősebb védelemhez
-> szerveroldali ellenőrzés / valódi fingerprint szükséges.
+> **Note:** Actual access rules should also be enforced in Firestore Security Rules (server-side) in addition to client-side checks.
 
 ---
 
-## Külső média API-k
+## Voting System
 
-Az admin média kereső három forrásból egyesít találatokat (`services/media-api.ts`):
+The goal of the voting system is to allow each visitor to vote **only once per session**, without registration.
 
-| Forrás           | Tartalom          | Hívás módja                                   |
+**How it works:**
+
+1. A unique **visitor ID** (`crypto.randomUUID()`) is generated for each browser and stored in `localforage` (key: `bcquiz_visitor_id`).
+2. When voting, a document is added to the `votes` collection with the ID `{sessionId}_{visitorId}`.
+3. The operation runs in a **Firestore transaction** (`runTransaction`):
+    - Checks if a vote with this ID already exists.
+    - If yes → throws an error ("You have already voted on this topic!").
+    - If no → records the vote **and** atomically increments the vote count for the theme.
+4. When resetting votes, the associated `votes` documents are also deleted, allowing for re-voting.
+
+> The `fingerprint` field actually contains the visitor ID. This solution prevents accidental double voting but does not provide complete protection against intentional abuse (e.g., clearing localStorage, using multiple browsers). For stronger protection, server-side checks / actual fingerprinting would be required.
+
+---
+
+## External Media APIs
+
+The admin media search combines results from three sources (`services/media-api.ts`):
+
+| Source           | Content           | Call Method                                   |
 |------------------|-------------------|-----------------------------------------------|
-| **TMDb**         | Filmek, sorozatok | Közvetlen kliensoldali hívás                  |
-| **Google Books** | Könyvek           | Közvetlen kliensoldali hívás                  |
-| **IGDB**         | Videójátékok      | Szerveroldali proxy-n keresztül (`/api/igdb`) |
+| **TMDb**         | Movies, series    | Direct client-side call                       |
+| **Google Books** | Books             | Direct client-side call                       |
+| **IGDB**         | Video games       | Via server-side proxy (`/api/igdb`)           |
 
-**IGDB proxy (`app/api/igdb/route.ts`):**
+**IGDB Proxy (`app/api/igdb/route.ts`):**
 
-- Az IGDB a Twitch OAuth-ot használja. A proxy szerveroldalon kéri le és **gyorsítótárazza** a Twitch access tokent (
-  memóriában, 60s biztonsági ráhagyással a lejárat előtt).
-- A lekérdezések válaszai **1 órán át** cache-elve vannak a felesleges hívások elkerülésére.
-- A Twitch kliens-azonosító és titok így soha nem kerül a kliens oldalra.
+- IGDB uses Twitch OAuth. The proxy requests and **caches** the Twitch access token server-side (in memory, with a 60s safety margin before expiration).
+- Query responses are cached for **1 hour** to avoid unnecessary calls.
+- The Twitch client ID and secret are never exposed to the client side.
 
 ---
 
-## Környezeti változók
+## Environment Variables
 
-Hozz létre egy `.env.local` fájlt a projekt gyökerében. **Soha ne commitold a valós értékeket!**
+Create a `.env.local` file in the project root. **Never commit real values!**
 
 ```bash
-# --- Firebase (kötelező éles módhoz) ---
+# --- Firebase (Required for production mode) ---
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
@@ -326,143 +310,134 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=
 # --- Firebase App Check (reCAPTCHA v3) ---
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=
 
-# --- Mock mód kapcsoló (opcionális) ---
-# true esetén localStorage-t használ Firebase helyett
+# --- Mock Mode Toggle (Optional) ---
+# If true, uses localStorage instead of Firebase
 NEXT_PUBLIC_USE_LOCAL_MOCK=
 
-# --- Média API-k (opcionális, a kereső funkcióhoz) ---
+# --- Media APIs (Optional, for search function) ---
 NEXT_PUBLIC_TMDB_API_KEY=
 NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY=
 
-# --- IGDB / Twitch (szerveroldali, NEM publikus) ---
+# --- IGDB / Twitch (Server-side, NOT public) ---
 TWITCH_CLIENT_ID=
 TWITCH_CLIENT_SECRET=
 ```
 
-> **Biztonsági figyelmeztetés:** A `TWITCH_CLIENT_SECRET` szerveroldali titok – soha ne tedd `NEXT_PUBLIC_` prefixszel
-> elérhetővé. A `NEXT_PUBLIC_` prefixű változók a böngészőbe is bekerülnek.
+> **Security Warning:** `TWITCH_CLIENT_SECRET` is a server-side secret – never make it available with the `NEXT_PUBLIC_` prefix. Variables with the `NEXT_PUBLIC_` prefix are included in the browser bundle.
 
-| Változó                                     | Kötelező?          | Leírás                        |
+| Variable                                    | Required?          | Description                   |
 |---------------------------------------------|--------------------|-------------------------------|
-| `NEXT_PUBLIC_FIREBASE_*`                    | Éles módhoz igen   | Firebase projekt konfiguráció |
-| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`            | App Check-hez igen | reCAPTCHA v3 oldal kulcs      |
-| `NEXT_PUBLIC_USE_LOCAL_MOCK`                | Nem                | `true` = helyi mock mód       |
-| `NEXT_PUBLIC_TMDB_API_KEY`                  | Nem                | Film/sorozat keresés          |
-| `NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY`          | Nem                | Könyv keresés                 |
-| `TWITCH_CLIENT_ID` / `TWITCH_CLIENT_SECRET` | Nem                | IGDB (játék) keresés          |
+| `NEXT_PUBLIC_FIREBASE_*`                    | Yes for production | Firebase project configuration |
+| `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`            | Yes for App Check  | reCAPTCHA v3 site key         |
+| `NEXT_PUBLIC_USE_LOCAL_MOCK`                | No                 | `true` = local mock mode      |
+| `NEXT_PUBLIC_TMDB_API_KEY`                  | No                 | Movie/series search           |
+| `NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY`          | No                 | Book search                   |
+| `TWITCH_CLIENT_ID` / `TWITCH_CLIENT_SECRET` | No                 | IGDB (game) search            |
 
 ---
 
-## Telepítés és futtatás
+## Installation and Running
 
-**Előfeltétel:** Node.js 18+ és npm.
+**Prerequisite:** Node.js 18+ and npm.
 
 ```bash
-# 1. Függőségek telepítése
+# 1. Install dependencies
 npm install
 
-# 2. Környezeti változók beállítása
-#    (hozd létre a .env.local fájlt a fenti minta alapján)
+# 2. Set up environment variables
+#    (create .env.local based on the template above)
 
-# 3. Fejlesztői szerver indítása
+# 3. Start developer server
 npm run dev
 ```
 
-Nyisd meg a [http://localhost:3000](http://localhost:3000) címet a böngészőben.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-> Firebase konfiguráció nélkül az alkalmazás automatikusan **mock módba** vált, így azonnal kipróbálható demó adatokkal.
+> Without Firebase configuration, the application automatically switches to **mock mode**, so it can be tried immediately with demo data.
 
-### Elérhető parancsok
+### Available Commands
 
-| Parancs         | Leírás                                         |
-|-----------------|------------------------------------------------|
-| `npm run dev`   | Fejlesztői szerver (HMR-rel, `0.0.0.0` hoston) |
-| `npm run build` | Éles build készítése                           |
-| `npm run start` | Éles build futtatása                           |
-| `npm run lint`  | ESLint ellenőrzés                              |
-
----
-
-## Firebase beállítása
-
-Éles módhoz egy Firebase projektre van szükség a következő szolgáltatásokkal:
-
-1. **Firestore Database** – a következő kollekciókkal:
-    - `quizzes` – kvízestek
-    - `voting_sessions` – szavazások
-    - `votes` – leadott szavazatok (`{sessionId}_{fingerprint}` azonosítóval)
-    - `settings/config` – konfigurációs dokumentum egy `adminEmails: string[]` mezővel
-2. **Authentication** – Google bejelentkezési provider engedélyezve. Az anonim bejelentkezés is engedélyezhető a
-   nyilvános szavazáshoz.
-3. **Storage** – képfeltöltéshez (kvíz/téma borítók).
-4. **App Check** – reCAPTCHA v3 provider, a háttér API-k védelméhez.
-
-**Admin hozzáadása:** a Firestore `settings/config` dokumentum `adminEmails` tömbjéhez add hozzá az engedélyezett Google
-e-mail címeket.
-
-> A javasolt biztonsági gyakorlat szerint a Firestore Security Rules-ban is korlátozd az írási műveleteket az admin
-> e-mailekre, a `votes` kollekciónál pedig kényszerítsd ki a dokumentum-azonosító egyediségét.
+| Command         | Description                                        |
+|-----------------|----------------------------------------------------|
+| `npm run dev`   | Developer server (with HMR, on `0.0.0.0` host)     |
+| `npm run build` | Create production build                            |
+| `npm run start` | Run production build                               |
+| `npm run lint`  | ESLint check                                       |
 
 ---
 
-## Fejlesztői útmutató
+## Firebase Setup
 
-### Új adatművelet hozzáadása
+For production mode, a Firebase project is required with the following services:
 
-1. Bővítsd a típusokat a `types/index.ts`-ben.
-2. Implementáld a Firebase és a mock logikát a megfelelő szolgáltatásban (`services/`). Tartsd be az `ApiResponse<T>`
-   mintát.
-3. Készíts (vagy bővíts) egy React Query hookot a `hooks/` mappában.
-4. Használd a hookot a komponensben.
+1. **Firestore Database** – with the following collections:
+    - `quizzes` – quiz nights
+    - `voting_sessions` – voting sessions
+    - `votes` – cast votes (with `{sessionId}_{fingerprint}` ID)
+    - `settings/config` – configuration document with an `adminEmails: string[]` field
+2. **Authentication** – Google login provider enabled. Anonymous login can also be enabled for public voting.
+3. **Storage** – for image uploads (quiz/theme covers).
+4. **App Check** – reCAPTCHA v3 provider to protect background APIs.
 
-### Mock mód fejlesztéshez
+**Adding an Admin:** add the authorized Google email addresses to the `adminEmails` array in the `settings/config` document in Firestore.
 
-A leggyorsabb fejlesztéshez állítsd be: `NEXT_PUBLIC_USE_LOCAL_MOCK=true`. Az adatok a böngészőben tárolódnak, és az
-admin felület "Alapértelmezett adatok" gombjával bármikor visszaállíthatók.
-
-### Konvenciók
-
-- **Szolgáltatási réteg minden adatművelethez** – a komponensek soha ne hívják közvetlenül a Firestore-t.
-- **Egységes válaszformátum** – minden szolgáltatás `ApiResponse<T>`-t ad vissza.
-- **Kliensoldali adatlekérés** – TanStack Query-vel, nem `useEffect`-ben.
-- **Reszponzív, mobil-első** design Tailwind segédosztályokkal.
-
-### Hibakeresés
-
-- A Firebase lekérdezések a `trackQuery` segédfüggvényen keresztül futnak, ami egységes hibanaplózást biztosít.
-- Az IGDB proxy részletes naplókat ír a token- és cache-eseményekről.
+> According to recommended security practices, you should also restrict write operations to admin emails in Firestore Security Rules, and enforce document ID uniqueness for the `votes` collection.
 
 ---
 
-## Felhasználói útmutató
+## Developer Guide
 
-### Látogatóknak
+### Adding a New Data Operation
 
-1. Nyisd meg a főoldalt – itt láthatók a közelgő kvízestek.
-2. Görgess a **Szavazás** szekcióhoz, és válaszd ki a kedvenc témád.
-3. Egy eszközről egyszer szavazhatsz.
+1. Extend types in `types/index.ts`.
+2. Implement Firebase and mock logic in the appropriate service (`services/`). Follow the `ApiResponse<T>` pattern.
+3. Create (or extend) a React Query hook in the `hooks/` folder.
+4. Use the hook in the component.
 
-### Adminoknak
+### Mock Mode for Development
 
-1. Lépj a `/admin` oldalra, és jelentkezz be az engedélyezett Google fiókoddal.
-2. **Kvízek** fül – kvízestek létrehozása, szerkesztése, aktiválása. Csak az aktív, jövőbeli kvízek jelennek meg a
-   nyilvános oldalon.
-3. **Szavazási Témák** fül – szavazás létrehozása és témák hozzáadása (a média keresővel borítóképekkel). Egyszerre csak
-   egy szavazás lehet aktív. A szavazatok nullázhatók.
-4. **Eszközök** fül – QR-kód generálása és letöltése (pl. a szavazó link kihelyezéséhez a helyszínen).
-5. A jobb felső sarokban váltható a téma, illetve kijelentkezhetsz. 30 perc inaktivitás után a rendszer automatikusan
-   kiléptet.
+For the fastest development, set: `NEXT_PUBLIC_USE_LOCAL_MOCK=true`. Data is stored in the browser and can be reset at any time with the "Default Data" button on the admin interface.
 
----
+### Conventions
 
-## Telepítés Vercelre
+- **Service layer for all data operations** – components should never call Firestore directly.
+- **Unified response format** – every service returns `ApiResponse<T>`.
+- **Client-side data fetching** – with TanStack Query, not in `useEffect`.
+- **Responsive, mobile-first** design using Tailwind utility classes.
 
-A projekt Vercelre optimalizált (Analytics és Speed Insights beépítve).
+### Debugging
 
-1. Csatlakoztasd a Git repository-t a Vercelhez.
-2. Add meg a [környezeti változókat](#környezeti-változók) a Vercel projekt beállításaiban.
-3. A Vercel automatikusan buildeli és telepíti az alkalmazást minden push-ra.
+- Firebase queries run through the `trackQuery` helper function, providing unified error logging.
+- The IGDB proxy writes detailed logs for token and cache events.
 
 ---
 
-© 2026 BarCraft Budapest. Minden jog fenntartva.
+## User Guide
+
+### For Visitors
+
+1. Open the main page – upcoming quiz nights are displayed here.
+2. Scroll to the **Voting** section and choose your favorite theme.
+3. You can vote once per device.
+
+### For Admins
+
+1. Go to the `/admin` page and log in with your authorized Google account.
+2. **Quizzes** tab – create, edit, activate quiz nights. Only active, future quizzes appear on the public page.
+3. **Voting Themes** tab – create voting sessions and add themes (using the media search for cover art). Only one voting session can be active at a time. Votes can be reset.
+4. **Tools** tab – generate and download QR codes (e.g., for placing the voting link at the venue).
+5. Theme can be toggled in the top right corner, and you can log out. The system automatically logs out after 30 minutes of inactivity.
+
+---
+
+## Deployment to Vercel
+
+The project is optimized for Vercel (Analytics and Speed Insights built-in).
+
+1. Connect the Git repository to Vercel.
+2. Provide the [environment variables](#environment-variables) in the Vercel project settings.
+3. Vercel automatically builds and deploys the application on every push.
+
+---
+
+© 2026 BarCraft Budapest. All rights reserved.
