@@ -1,7 +1,7 @@
 import { MapPin } from "lucide-react";
 
 export default function AddressLink({ address }: { address: string }) {
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  const mapsUrl = `https://maps.app.goo.gl/LGbaaHbLgbX6VeJi6`;
 
   return (
     <a

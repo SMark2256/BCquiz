@@ -97,6 +97,15 @@ export function useVoting(staleTime: number = 1000 * 60 * 60 * 24) {
     return result;
   };
 
+  const votedTopic = useMemo(() => {
+    if (!serverVoteData?.hasVoted || !activeSession) return null;
+    return (
+      activeSession.votepool.find(
+        (t) => t.id === serverVoteData.data?.topicId,
+      ) || null
+    );
+  }, [serverVoteData, activeSession]);
+
   return {
     topics: activeSession
       ? [...activeSession.votepool].sort((a, b) => b.votes - a.votes)
@@ -106,6 +115,7 @@ export function useVoting(staleTime: number = 1000 * 60 * 60 * 24) {
     vote,
     hasVoted,
     hasVotedAny,
+    votedTopic,
     refetch: () =>
       queryClient.invalidateQueries({ queryKey: ["voting_sessions"] }),
   };

@@ -8,6 +8,7 @@ import { FadeIn, BlurIn } from "@/components/ui/motion";
 import MainLogo from "@/components/features/main-logo";
 import AddressLink from "@/components/ui/address-link";
 import SocialLinks from "@/components/ui/social-links";
+import { ContactPhone } from "@/components/ui/contact-phone";
 
 export default function Home() {
   return (
@@ -108,10 +109,13 @@ export default function Home() {
                       style={{ height: "auto" }}
                     />
                   </MythicIcon>
-                  <div className="flex flex-1">
-                    <p className="flex items-center  text-white font-normal text-base md:text-base">
+                  <div className="flex flex-1 flex-col md:flex-row md:gap-2">
+                    <p className="flex items-center  text-white font-normal text-base md:text-base leading-6">
                       A foglalás ajánlott.
                     </p>
+                    <div className="flex items-center justify-start md:justify-center">
+                      <ContactPhone />
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-center gap-4 h-14">
@@ -142,7 +146,7 @@ export default function Home() {
                     />
                   </MythicIcon>
                   <div className="flex flex-1">
-                    <p className="flex items-center text-white text-start font-black text-base md:text-base">
+                    <p className="flex items-center text-white text-start font-black text-base md:text-base w-5/6 md:w-auto">
                       További kérdésekkel keresd a pultosokat!
                     </p>
                   </div>

@@ -89,6 +89,8 @@ export async function getUpcomingQuizzes(): Promise<ApiResponse<Quiz[]>> {
 
   try {
     const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
     const q = query(
       collection(firestore, COLLECTION_NAME),
       where("isActive", "==", true),

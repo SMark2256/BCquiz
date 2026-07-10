@@ -13,6 +13,7 @@ import {
   where,
   writeBatch,
   runTransaction,
+  onSnapshot,
 } from "firebase/firestore";
 import {
   firestore,
@@ -31,6 +32,7 @@ import {
   toggleLocalVotingSessionActive,
   voteLocalVoteTopic,
   resetLocalVotingSessionVotes,
+  subscribeToStorage,
 } from "../mock-storage";
 import type {
   VotingSession,
@@ -122,6 +124,17 @@ export async function getActiveVotingSession(): Promise<
 
 // Check voted
 export async function checkUserVoted(sessionId: string, fingerprint: string) {
+  if (shouldUseMockStorage()) {
+    if (typeof window !== "undefined") {
+      const voteKey = `vote_${sessionId}_${fingerprint}`;
+      const savedVote = window.localStorage.getItem(voteKey);
+      if (savedVote) {
+        return { hasVoted: true, data: JSON.parse(savedVote) };
+      }
+    }
+    return { hasVoted: false };
+  }
+
   const voteDocId = `${sessionId}_${fingerprint}`;
   const voteRef = doc(firestore, "votes", voteDocId);
   const snap = await trackQuery("checkUserVoted", () => getDoc(voteRef));
@@ -312,6 +325,10 @@ export async function voteForVoteTopic(
   topicId: string,
   fingerprint: string,
 ): Promise<ApiResponse<VotingSession>> {
+  if (shouldUseMockStorage()) {
+    return voteLocalVoteTopic(sessionId, topicId, fingerprint);
+  }
+
   await initAppCheck();
 
   try {
@@ -453,4 +470,25 @@ export async function fetchVotingSessionsDirectly() {
     getDocs(q),
   );
   return snapshot.docs.map((doc) => doc.data());
+}
+
+// Subscribe to voting sessions (real-time).
+export function subscribeToVotingSessions(
+  callback: (sessions: VotingSession[]) => void,
+) {
+  if (shouldUseMockStorage()) {
+    return subscribeToStorage(() => {
+      callback(getLocalVotingSessions());
+    });
+  }
+
+  const q = query(
+    collection(firestore, COLLECTION_NAME),
+    orderBy("createdAt", "desc"),
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const sessions = snapshot.docs.map(documentToVotingSession);
+    callback(sessions);
+  });
 }

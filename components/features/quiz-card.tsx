@@ -2,18 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { QuizCardSkeleton } from "./quiz-card-skeleton";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import Image from "next/image";
 import type { Quiz } from "@/types";
 import { cn } from "@/lib/utils";
+import MythicText from "@/components/ui/mythic-text";
 
 interface QuizCardProps {
   quiz: Quiz;
 }
 
 export function QuizCard({ quiz }: QuizCardProps) {
-  const day = format(quiz.date, "dd");
-  const month = format(quiz.date, "MM");
+  const quizTime: string = format(quiz.date, "MM.dd");
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const isToday: boolean = isSameDay(new Date(), quiz.date);
 
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -41,8 +45,6 @@ export function QuizCard({ quiz }: QuizCardProps) {
       */}
 
         <div className="relative flex z-50 h-30 items-stretch text-white sm:h-32">
-          {/* Image Section */}
-          {/*<div className="relative flex shrink-0 items-stretch">*/}
           {quiz.imageUrl ? (
             <div className="relative min-w-26 w-auto max-w-32 overflow-hidden">
               <Image
@@ -65,7 +67,6 @@ export function QuizCard({ quiz }: QuizCardProps) {
               </span>
             </div>
           )}
-          {/*</div>*/}
 
           {/* Title Section */}
           <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-3 text-center">
@@ -88,16 +89,18 @@ export function QuizCard({ quiz }: QuizCardProps) {
           <div className="relative flex h-full w-20 shrink-0 flex-col items-center justify-center border-foreground py-3 sm:py-4 mr-3 sm:mr-4 sm:w-24">
             {/* Belső sötét doboz */}
             <div className="relative flex size-full flex-col items-center justify-center bg-muted/0 text-muted">
-              {/* Belső dekorációs pöttyök - A sötét blokk sarkaiban, szintén fekete szegéllyel */}
-              {/*<div className="absolute -top-1.5 -left-1.5 size-3 rounded-full bg-foreground"/>*/}
-              {/*<div className="absolute -top-1.5 -right-1.5 size-3 rounded-full bg-foreground"/>*/}
-              {/*<div className="absolute -bottom-1.5 -left-1.5 size-3 rounded-full bg-foreground"/>*/}
-              {/*<div className="absolute -bottom-1.5 -right-1.5 size-3 rounded-full bg-foreground"/>*/}
-
-              <span className="text-xl font-black leading-none tracking-wider md:text-2xl">
-                {month}.{day}
-              </span>
-              <span className="text-[0.6rem] font-bold sm:text-xs">
+              {isToday ? (
+                <MythicText>
+                  <span className="text-xl font-black leading-none tracking-wider md:text-xl">
+                    MA
+                  </span>
+                </MythicText>
+              ) : (
+                <span className="text-xl font-black leading-none tracking-wider md:text-xl">
+                  {quizTime}
+                </span>
+              )}
+              <span className="text-base font-bold sm:text-md tracking-wider">
                 ({quiz.time})
               </span>
             </div>
